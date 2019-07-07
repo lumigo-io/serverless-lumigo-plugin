@@ -1,0 +1,23 @@
+{
+  "name": "serverless-lumigo",
+  "version": "1.0.0",
+  "description": "Serverless framework plugin to auto-install the Lumigo tracer",
+  "main": "index.js",
+  "scripts": {
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lumigo-io/serverless-lumigo.git"
+  },
+  "author": "Yan Cui <theburningmonk@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lumigo-io/serverless-lumigo/issues"
+  },
+  "homepage": "https://github.com/lumigo-io/serverless-lumigo#readme",
+  "dependencies": {
+    "bluebird": "^3.5.5",
+    "fs-extra": "^8.1.0",
+    "lodash": "^4.17.11"
+  }
+}
