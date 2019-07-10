@@ -45,6 +45,7 @@ class LumigoPlugin {
 
 	getFunctionsToWrap(service) {
 		if(!service.provider.runtime.startsWith("nodejs")) {
+			this.log(`unsupported runtime: [${service.provider.runtime}], skipped...`);
 			return [];
 		}
 
