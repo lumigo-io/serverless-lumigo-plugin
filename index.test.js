@@ -6,11 +6,23 @@ const AwsProvider = require("serverless/lib/plugins/aws/provider/awsProvider");
 jest.mock("fs-extra");
 jest.mock("child_process");
 
+const token = "test-token";
+
 afterEach(() => jest.clearAllMocks());
+
+expect.extend({
+	toContainAllStrings(received, ...strings) {
+		const pass = strings.every(s => received.includes(s));
+		return {
+			message: () => `expected ${received} contain the strings [${strings.join(",")}]`,
+			pass,
+		};
+	}
+});
 	
 describe("Lumigo plugin (node.js)", () => {
 	let serverless;
-	let lumigo;
+	let lumigo;	
   
 	beforeEach(() => {
 		serverless = new Serverless();
@@ -35,6 +47,11 @@ describe("Lumigo plugin (node.js)", () => {
 			"bar": {
 				handler: "foo-bar.handler",
 				events: []
+			}
+		};
+		serverless.service.custom = {
+			lumigo: {
+				token: token
 			}
 		};
 		childProcess.exec.mockImplementation((cmd, cb) => cb());
@@ -93,16 +110,32 @@ function assertFunctionsAreWrapped() {
 	expect(fs.outputFile).toBeCalledTimes(4);
 	expect(fs.outputFile).toBeCalledWith(
 		__dirname + "/_lumigo/hello.js", 
-		expect.stringContaining("const handler = require('../hello').world"));
+		expect.toContainAllStrings(
+			'const LumigoTracer = require("@lumigo/tracer");',
+			"const handler = require('../hello').world",
+			`token: '${token}'`
+		));
 	expect(fs.outputFile).toBeCalledWith(
 		__dirname + "/_lumigo/hello.world.js",
-		expect.stringContaining("const handler = require('../hello.world').handler"));
+		expect.toContainAllStrings(
+			'const LumigoTracer = require("@lumigo/tracer");',
+			"const handler = require('../hello.world').handler",
+			`token: '${token}'`
+		));
 	expect(fs.outputFile).toBeCalledWith(
 		__dirname + "/_lumigo/foo_bar.js", 
-		expect.stringContaining("const handler = require('../foo_bar').handler"));
+		expect.toContainAllStrings(
+			'const LumigoTracer = require("@lumigo/tracer");',
+			"const handler = require('../foo_bar').handler",
+			`token: '${token}'`
+		));
 	expect(fs.outputFile).toBeCalledWith(
 		__dirname + "/_lumigo/foo-bar.js", 
-		expect.stringContaining("const handler = require('../foo-bar').handler"));
+		expect.toContainAllStrings(
+			'const LumigoTracer = require("@lumigo/tracer");',
+			"const handler = require('../foo-bar').handler",
+			`token: '${token}'`
+		));
 }
 
 function assertFunctionsAreNotWrapped() {
