@@ -17,21 +17,35 @@ class LumigoPlugin {
 		};
 	}
 
-	async afterPackageInitialize() {    
-		this.functionsToWrap = this.getFunctionsToWrap(      
+	async afterPackageInitialize() {
+		// [{"handler":"handler.hello","events":[],"name":"aws-nodejs-dev-hello"}]
+		const { runtime, functions } = this.getFunctionsToWrap(      
 			this.serverless.service
 		);
-		// [{"handler":"handler.hello","events":[],"name":"aws-nodejs-dev-hello"}]
-		this.log(`there are ${this.functionsToWrap.length} function(s) to wrap...`);
+    
+		this.log(`there are ${functions.length} function(s) to wrap...`);
 
-		if (this.functionsToWrap.length > 0) {
-			await this.installLumigo();
+		if (functions.length === 0) {
+			return;
+		}
 
-			const token = _.get(this.serverless.service, "custom.lumigo.token");
+		const token = _.get(this.serverless.service, "custom.lumigo.token");
 
-			for (const func of this.functionsToWrap)
+		if (runtime === "nodejs") {
+			await this.installLumigoNodejs();
+      
+			for (const func of functions)
 			{
-				const handler = await this.createWrappedFunction(func, token);
+				const handler = await this.createWrappedNodejsFunction(func, token);
+				// replace the function handler to the wrapped function
+				func.handler = handler;
+			}
+		} else if (runtime === "python") {
+			await this.ensureLumigoPythonIsInstalled();
+
+			for (const func of functions)
+			{
+				const handler = await this.createWrappedPythonFunction(func, token);
 				// replace the function handler to the wrapped function
 				func.handler = handler;
 			}
@@ -39,47 +53,115 @@ class LumigoPlugin {
 	}
 
 	async afterCreateDeploymentArtifacts() {
+		const { runtime, functions } = this.getFunctionsToWrap(
+			this.serverless.service
+		);
+    
+		if (functions.length === 0) {
+			return;
+		}
+    
 		await this.cleanFolder();
-		await this.uninstallLumigo();
+    
+		if (runtime === "nodejs") {
+			await this.uninstallLumigoNodejs();
+		}
 	}
 
 	getFunctionsToWrap(service) {
-		if(!service.provider.runtime.startsWith("nodejs")) {
-			this.log(`unsupported runtime: [${service.provider.runtime}], skipped...`);
-			return [];
-		}
-
-		return service.getAllFunctions()
+		const functions = service.getAllFunctions()
 			.map(name => service.getFunction(name));
+        
+		if (service.provider.runtime.startsWith("nodejs")) {			
+			return { runtime: "nodejs", functions };
+		} else if (service.provider.runtime.startsWith("python3")) {
+			return { runtime: "python", functions }; 
+		} else {
+			this.log(`unsupported runtime: [${service.provider.runtime}], skipped...`);
+			return { runtime: "unsupported", functions: []};
+		}
 	}
 
-	async installLumigo() {
+	async installLumigoNodejs() {
 		this.log("installing @lumigo/tracer...");
 		await childProcess.execAsync("npm install @lumigo/tracer");
 	}
 
-	async uninstallLumigo() {
+	async uninstallLumigoNodejs() {
 		this.log("uninstalling @lumigo/tracer...");
 		await childProcess.execAsync("npm uninstall @lumigo/tracer");
 	}
+  
+	async ensureLumigoPythonIsInstalled() {
+		this.log("checking if lumigo_tracer is installed...");
+    
+		const plugins = _.get(this.serverless.service, "plugins", []);
+		const slsPythonInstalled = plugins.includes("serverless-python-requirements");
+    
+		const ensureTracerInstalled = async (fileName) => {
+			const requirementsExists = fs.pathExistsSync(fileName);
+      
+			if (!requirementsExists) {
+				let errorMessage = `${fileName} is not found.`;
+				if (!slsPythonInstalled) {
+					errorMessage += `
+Consider using the serverless-python-requirements plugin to help you package Python dependencies.`;
+				}
+				throw new this.serverless.classes.Error(errorMessage);
+			}
 
-	async createWrappedFunction(func, token) {
+			const requirements = await fs.readFile(fileName, "utf8");
+			if (!requirements.includes("lumigo_tracer")) {
+				const errorMessage = `lumigo_tracer is not installed. Please check ${fileName}.`;
+				throw new this.serverless.classes.Error(errorMessage);
+			}
+		};
+		
+		const packageIndividually = _.get(
+			this.serverless.service, "package.individually", false);
+    
+		if (packageIndividually) {
+			this.log("functions are packed individually, ensuring each function has a requirement.txt...");
+			const { functions } = this.getFunctionsToWrap(
+				this.serverless.service
+			);
+
+			for (const fn of functions) {
+				// functions/hello.world.handler -> functions
+				const dir = path.dirname(fn.handler);
+        
+				// there should be a requirements.txt in each function's folder
+				const requirementsFilename = path.join(dir, "requirements.txt");				
+				await ensureTracerInstalled(requirementsFilename);
+			}
+		} else {
+			this.log("ensuring there is a requirement.txt or equivalent...");
+			const requirementsFilename = 
+        _.get(
+        	this.serverless.service, 
+        	"custom.pythonRequirements.fileName",
+        	"requirements.txt");
+			await ensureTracerInstalled(requirementsFilename);
+		}
+	}
+
+	async createWrappedNodejsFunction(func, token) {
 		// e.g. functions/hello.world.handler -> hello.world.handler
 		const handler = path.basename(func.handler);
 
 		// e.g. functions/hello.world.handler -> functions/hello.world
 		const handlerModulePath = func.handler.substr(0, func.handler.lastIndexOf("."));
-		// e.g. functions/hello.world.handler -> .handler
-		const handlerFuncName = handler.substr(handler.lastIndexOf("."));
+		// e.g. functions/hello.world.handler -> handler
+		const handlerFuncName = handler.substr(handler.lastIndexOf(".") + 1);
 
 		const wrappedFunction = `
 const LumigoTracer = require("@lumigo/tracer");
 const tracer = new LumigoTracer({
   token: '${token}'
 });
-const handler = require('../${handlerModulePath}')${handlerFuncName};
+const handler = require('../${handlerModulePath}').${handlerFuncName};
 
-module.exports.handler = tracer.trace(handler);
+module.exports.${handlerFuncName} = tracer.trace(handler);
     `;
     
 		// e.g. functions/hello.world -> hello.world.js
@@ -92,7 +174,40 @@ module.exports.handler = tracer.trace(handler);
 		// /Users/username/source/project/_lumigo/hello.world.js -> _lumigo/hello.world.js
 		const newFilePath = path.relative(this.serverless.config.servicePath, filePath);
 		// e.g. _lumigo/hello.world.js -> _lumigo/hello.world.handler
-		return newFilePath.substr(0, newFilePath.lastIndexOf(".")) + handlerFuncName;
+		return newFilePath.substr(0, newFilePath.lastIndexOf(".") + 1) + handlerFuncName;
+	}
+  
+	async createWrappedPythonFunction(func, token) {
+		// e.g. functions/hello.world.handler -> hello.world.handler
+		const handler = path.basename(func.handler);
+    
+		// e.g. functions/hello.world.handler -> functions.hello.world
+		const handlerModulePath = func.handler
+			.substr(0, func.handler.lastIndexOf("."))
+			.replace("/", ".");
+		// e.g. functions/hello.world.handler -> handler
+		const handlerFuncName = handler.substr(handler.lastIndexOf(".") + 1);
+    
+		const wrappedFunction = `
+from lumigo_tracer import lumigo_tracer
+from ${handlerModulePath} import ${handlerFuncName}
+
+@lumigo_tracer(token='${token}')
+def ${handlerFuncName}(event, context):
+    ${handlerFuncName}(event, context)
+    `;
+    
+		// e.g. functions/hello.world.handler -> hello.world.py
+		const fileName = handler.substr(0, handler.lastIndexOf(".")) + ".py";
+		// e.g. hello.world.py -> /Users/username/source/project/_lumigo/hello.world.py
+		const filePath = path.join(this.folderPath, fileName);
+		await fs.outputFile(filePath, wrappedFunction);
+
+		// convert from abs path to relative path, e.g. 
+		// /Users/username/source/project/_lumigo/hello.world.py -> _lumigo/hello.world.py
+		const newFilePath = path.relative(this.serverless.config.servicePath, filePath);
+		// e.g. _lumigo/hello.world.py -> _lumigo/hello.world.handler
+		return newFilePath.substr(0, newFilePath.lastIndexOf(".") + 1) + handlerFuncName;
 	}
 
 	async cleanFolder() {
