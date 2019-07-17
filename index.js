@@ -184,17 +184,18 @@ module.exports.${handlerFuncName} = tracer.trace(handler);
 		// e.g. functions/hello.world.handler -> functions.hello.world
 		const handlerModulePath = func.handler
 			.substr(0, func.handler.lastIndexOf("."))
-			.replace("/", ".");
+			.split("/")  // replace all occurances of "/""
+			.join(".");
 		// e.g. functions/hello.world.handler -> handler
 		const handlerFuncName = handler.substr(handler.lastIndexOf(".") + 1);
     
 		const wrappedFunction = `
 from lumigo_tracer import lumigo_tracer
-from ${handlerModulePath} import ${handlerFuncName}
+from ${handlerModulePath} import ${handlerFuncName} as userHandler
 
 @lumigo_tracer(token='${token}')
 def ${handlerFuncName}(event, context):
-    ${handlerFuncName}(event, context)
+  userHandler(event, context)
     `;
     
 		// e.g. functions/hello.world.handler -> hello.world.py

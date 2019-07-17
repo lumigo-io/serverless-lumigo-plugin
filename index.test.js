@@ -145,7 +145,7 @@ describe("Lumigo plugin (python)", () => {
 				events: []
 			},
 			"foo": {
-				handler: "foo/bar.handler",
+				handler: "foo/foo/bar.handler",
 				events: []
 			},
 			"bar": {
@@ -377,28 +377,28 @@ function assertPythonFunctionsAreWrapped() {
 		__dirname + "/_lumigo/hello.py", 
 		expect.toContainAllStrings(
 			"from lumigo_tracer import lumigo_tracer",
-			"from hello import world",
+			"from hello import world as userHandler",
 			`@lumigo_tracer(token='${token}')`
 		));
 	expect(fs.outputFile).toBeCalledWith(
 		__dirname + "/_lumigo/hello.world.py",
 		expect.toContainAllStrings(
 			"from lumigo_tracer import lumigo_tracer",
-			"from hello.world import handler",
+			"from hello.world import handler as userHandler",
 			`@lumigo_tracer(token='${token}')`
 		));
 	expect(fs.outputFile).toBeCalledWith(
 		__dirname + "/_lumigo/bar.py", 
 		expect.toContainAllStrings(
 			"from lumigo_tracer import lumigo_tracer",
-			"from foo.bar import handler",
+			"from foo.foo.bar import handler as userHandler",
 			`@lumigo_tracer(token='${token}')`
 		));
 	expect(fs.outputFile).toBeCalledWith(
 		__dirname + "/_lumigo/zoo.py", 
 		expect.toContainAllStrings(
 			"from lumigo_tracer import lumigo_tracer",
-			"from foo.bar.zoo import handler",
+			"from foo.bar.zoo import handler as userHandler",
 			`@lumigo_tracer(token='${token}')`
 		));
 }
