@@ -15,6 +15,7 @@ class LumigoPlugin {
 			}
 		};
 		this.folderPath = path.join(this.serverless.config.servicePath, "_lumigo");
+		this.isNodeTracerInstalled = this.isLumigoNodejsInstalled();
 
 		this.hooks = {
 			"after:package:initialize": this.afterPackageInitialize.bind(this),
@@ -88,12 +89,36 @@ class LumigoPlugin {
 		}
 	}
 
+	isLumigoNodejsInstalled() {
+		const packageJsonPath = path.join(this.serverless.config.servicePath, "package.json");
+
+		try {
+			const packageJson = require(packageJsonPath);
+			const dependencies = _.get(packageJson, "dependencies", {});
+			return _.has(dependencies, "@lumigo/tracer");
+		} catch (err) {
+			this.verboseLog("error when trying to check if @lumigo/tracer is already installed...");
+			this.verboseLog(err.message);
+			this.verboseLog("assume @lumigo/tracer has not been installed...");
+			return false;
+		}
+	}
+
 	async installLumigoNodejs() {
+		if (this.isNodeTracerInstalled) {
+			this.verboseLog("@lumigo/tracer is already installed, skipped...");
+			return;
+		}
+
 		this.log("installing @lumigo/tracer...");
 		await childProcess.execAsync("npm install @lumigo/tracer");
 	}
 
 	async uninstallLumigoNodejs() {
+		if (this.isNodeTracerInstalled) {
+			return;
+		}
+
 		this.log("uninstalling @lumigo/tracer...");
 		await childProcess.execAsync("npm uninstall @lumigo/tracer");
 	}
