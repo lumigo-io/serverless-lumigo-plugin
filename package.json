@@ -5,7 +5,8 @@
     "main": "index.js",
     "scripts": {
         "test": "jest --config=jest.config.js",
-        "test:lint": "eslint ."
+        "test:lint": "eslint .",
+        "semantic-release": "semantic-release"
     },
     "repository": {
         "type": "git",
@@ -20,10 +21,10 @@
     "dependencies": {
         "bluebird": "^3.5.5",
         "fs-extra": "^8.1.0",
-        "lodash": "^4.17.11"
+        "lodash": "^4.17.14"
     },
     "devDependencies": {
-        "@commitlint/cli": "^8.0.0",
+        "@commitlint/cli": "^8.1.0",
         "@commitlint/config-conventional": "^8.0.0",
         "coveralls": "^3.0.2",
         "eslint": "^5.13.0",
@@ -36,6 +37,7 @@
         "husky": "^3.0.0",
         "jest": "^24.8.0",
         "lint-staged": "^9.1.0",
+        "semantic-release": "^15.13.18",
         "serverless": "^1.46.1"
     },
     "greenkeeper": {
