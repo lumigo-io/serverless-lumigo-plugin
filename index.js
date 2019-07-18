@@ -9,6 +9,11 @@ class LumigoPlugin {
 		this.serverless = serverless;
 		this.options = options;
 		this.log = (msg) => this.serverless.cli.log(`serverless-lumigo: ${msg}`);
+		this.verboseLog = (msg) => {
+			if (process.env.SLS_DEBUG) {
+				this.log(msg);
+			}
+		};
 		this.folderPath = path.join(this.serverless.config.servicePath, "_lumigo");
 
 		this.hooks = {
@@ -24,6 +29,7 @@ class LumigoPlugin {
 		);
     
 		this.log(`there are ${functions.length} function(s) to wrap...`);
+		functions.forEach(fn => this.verboseLog(JSON.stringify(fn)));
 
 		if (functions.length === 0) {
 			return;
@@ -146,6 +152,8 @@ Consider using the serverless-python-requirements plugin to help you package Pyt
 	}
 
 	async createWrappedNodejsFunction(func, token) {
+		this.verboseLog(`wrapping [${func.handler}]...`);
+
 		// e.g. functions/hello.world.handler -> hello.world.handler
 		const handler = path.basename(func.handler);
 
@@ -168,6 +176,7 @@ module.exports.${handlerFuncName} = tracer.trace(handler);
 		const fileName = handler.substr(0, handler.lastIndexOf(".")) + ".js";
 		// e.g. hello.world.js -> /Users/username/source/project/_lumigo/hello.world.js
 		const filePath = path.join(this.folderPath, fileName);
+		this.verboseLog(`writing wrapper function to [${filePath}]...`);
 		await fs.outputFile(filePath, wrappedFunction);
 
 		// convert from abs path to relative path, e.g. 
@@ -178,6 +187,8 @@ module.exports.${handlerFuncName} = tracer.trace(handler);
 	}
   
 	async createWrappedPythonFunction(func, token) {
+		this.verboseLog(`wrapping [${func.handler}]...`);
+		
 		// e.g. functions/hello.world.handler -> hello.world.handler
 		const handler = path.basename(func.handler);
     
@@ -202,6 +213,7 @@ def ${handlerFuncName}(event, context):
 		const fileName = handler.substr(0, handler.lastIndexOf(".")) + ".py";
 		// e.g. hello.world.py -> /Users/username/source/project/_lumigo/hello.world.py
 		const filePath = path.join(this.folderPath, fileName);
+		this.verboseLog(`writing wrapper function to [${filePath}]...`);
 		await fs.outputFile(filePath, wrappedFunction);
 
 		// convert from abs path to relative path, e.g. 
@@ -212,6 +224,7 @@ def ${handlerFuncName}(event, context):
 	}
 
 	async cleanFolder() {
+		this.verboseLog(`removing the temporary folder [${this.folderPath}]...`);
 		return fs.remove(this.folderPath);
 	}
 }
