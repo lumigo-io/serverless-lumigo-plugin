@@ -4,7 +4,7 @@ jobs:
   build:
     docker:
       - image: circleci/node:10.16.0
-    working_directory: ~/repo
+    working_directory: ~/serverless-lumigo
     steps:
       - checkout
       - run: npm ci
@@ -14,7 +14,7 @@ jobs:
   deploy:
     docker:
       - image: circleci/node:10.16.0
-    working_directory: ~/repo
+    working_directory: ~/serverless-lumigo
     steps:
       - checkout
       - run: npm run semantic-release
