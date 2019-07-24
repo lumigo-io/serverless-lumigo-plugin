@@ -11,7 +11,7 @@
         "type": "git",
         "url": "git+https://github.com/lumigo-io/serverless-lumigo.git"
     },
-    "author": "Yan Cui <theburningmonk@gmail.com>",
+    "author": "Lumigo LTD (https://lumigo.io)",
     "license": "MIT",
     "bugs": {
         "url": "https://github.com/lumigo-io/serverless-lumigo/issues"
