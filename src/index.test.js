@@ -54,6 +54,7 @@ describe("Lumigo plugin (node.js)", () => {
 				token: token
 			}
 		};
+		serverless.config.servicePath = __dirname;
 		childProcess.exec.mockImplementation((cmd, cb) => cb());
 		const LumigoPlugin = require("./index");
 		lumigo = new LumigoPlugin(serverless, {});
@@ -158,6 +159,7 @@ describe("Lumigo plugin (python)", () => {
 				token: token
 			}
 		};
+		serverless.config.servicePath = __dirname;
 		childProcess.exec.mockImplementation((cmd, cb) => cb());
 		const LumigoPlugin = require("./index");
 		lumigo = new LumigoPlugin(serverless, {});
