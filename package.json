@@ -12,7 +12,7 @@
         "url": "git+https://github.com/lumigo-io/serverless-lumigo.git"
     },
     "author": "Lumigo LTD (https://lumigo.io)",
-    "license": "MIT",
+    "license": "Apache 2",
     "bugs": {
         "url": "https://github.com/lumigo-io/serverless-lumigo/issues"
     },
