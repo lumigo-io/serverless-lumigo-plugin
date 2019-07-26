@@ -6,7 +6,9 @@
     "scripts": {
         "test": "jest --config=jest.config.js",
         "test:lint": "eslint .",
-        "semantic-release": "semantic-release"
+        "semantic-release": "semantic-release",
+        "prettier:ci": "prettier --list-different \"src/**/*.js\"",
+        "prettier:fix": "prettier --write \"./src/**/*.js\""
     },
     "repository": {
         "type": "git",
@@ -37,8 +39,14 @@
         "husky": "^3.0.0",
         "jest": "^24.8.0",
         "lint-staged": "^9.1.0",
+        "prettier": "^1.18.2",
         "semantic-release": "^15.13.18",
         "serverless": "^1.46.1"
+    },
+    "prettier": {
+        "useTabs": true,
+        "tabWidth": 4,
+        "printWidth": 90
     },
     "greenkeeper": {
         "ignore": [

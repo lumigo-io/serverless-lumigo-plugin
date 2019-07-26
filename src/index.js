@@ -8,8 +8,8 @@ class LumigoPlugin {
 	constructor(serverless, options) {
 		this.serverless = serverless;
 		this.options = options;
-		this.log = (msg) => this.serverless.cli.log(`serverless-lumigo: ${msg}`);
-		this.verboseLog = (msg) => {
+		this.log = msg => this.serverless.cli.log(`serverless-lumigo: ${msg}`);
+		this.verboseLog = msg => {
 			if (process.env.SLS_DEBUG) {
 				this.log(msg);
 			}
@@ -19,16 +19,16 @@ class LumigoPlugin {
 
 		this.hooks = {
 			"after:package:initialize": this.afterPackageInitialize.bind(this),
-			"after:package:createDeploymentArtifacts": this.afterCreateDeploymentArtifacts.bind(this),
+			"after:package:createDeploymentArtifacts": this.afterCreateDeploymentArtifacts.bind(
+				this
+			)
 		};
 	}
 
 	async afterPackageInitialize() {
 		// [{"handler":"handler.hello","events":[],"name":"aws-nodejs-dev-hello"}]
-		const { runtime, functions } = this.getFunctionsToWrap(      
-			this.serverless.service
-		);
-    
+		const { runtime, functions } = this.getFunctionsToWrap(this.serverless.service);
+
 		this.log(`there are ${functions.length} function(s) to wrap...`);
 		functions.forEach(fn => this.verboseLog(JSON.stringify(fn)));
 
@@ -40,9 +40,8 @@ class LumigoPlugin {
 
 		if (runtime === "nodejs") {
 			await this.installLumigoNodejs();
-      
-			for (const func of functions)
-			{
+
+			for (const func of functions) {
 				const handler = await this.createWrappedNodejsFunction(func, token);
 				// replace the function handler to the wrapped function
 				func.handler = handler;
@@ -50,8 +49,7 @@ class LumigoPlugin {
 		} else if (runtime === "python") {
 			await this.ensureLumigoPythonIsInstalled();
 
-			for (const func of functions)
-			{
+			for (const func of functions) {
 				const handler = await this.createWrappedPythonFunction(func, token);
 				// replace the function handler to the wrapped function
 				func.handler = handler;
@@ -60,44 +58,48 @@ class LumigoPlugin {
 	}
 
 	async afterCreateDeploymentArtifacts() {
-		const { runtime, functions } = this.getFunctionsToWrap(
-			this.serverless.service
-		);
-    
+		const { runtime, functions } = this.getFunctionsToWrap(this.serverless.service);
+
 		if (functions.length === 0) {
 			return;
 		}
-    
+
 		await this.cleanFolder();
-    
+
 		if (runtime === "nodejs") {
 			await this.uninstallLumigoNodejs();
 		}
 	}
 
 	getFunctionsToWrap(service) {
-		const functions = service.getAllFunctions()
+		const functions = service
+			.getAllFunctions()
 			.map(name => service.getFunction(name));
-        
-		if (service.provider.runtime.startsWith("nodejs")) {			
+
+		if (service.provider.runtime.startsWith("nodejs")) {
 			return { runtime: "nodejs", functions };
 		} else if (service.provider.runtime.startsWith("python3")) {
-			return { runtime: "python", functions }; 
+			return { runtime: "python", functions };
 		} else {
 			this.log(`unsupported runtime: [${service.provider.runtime}], skipped...`);
-			return { runtime: "unsupported", functions: []};
+			return { runtime: "unsupported", functions: [] };
 		}
 	}
 
 	isLumigoNodejsInstalled() {
-		const packageJsonPath = path.join(this.serverless.config.servicePath, "package.json");
+		const packageJsonPath = path.join(
+			this.serverless.config.servicePath,
+			"package.json"
+		);
 
 		try {
 			const packageJson = require(packageJsonPath);
 			const dependencies = _.get(packageJson, "dependencies", {});
 			return _.has(dependencies, "@lumigo/tracer");
 		} catch (err) {
-			this.verboseLog("error when trying to check if @lumigo/tracer is already installed...");
+			this.verboseLog(
+				"error when trying to check if @lumigo/tracer is already installed..."
+			);
 			this.verboseLog(err.message);
 			this.verboseLog("assume @lumigo/tracer has not been installed...");
 			return false;
@@ -122,16 +124,16 @@ class LumigoPlugin {
 		this.log("uninstalling @lumigo/tracer...");
 		await childProcess.execAsync("npm uninstall @lumigo/tracer");
 	}
-  
+
 	async ensureLumigoPythonIsInstalled() {
 		this.log("checking if lumigo_tracer is installed...");
-    
+
 		const plugins = _.get(this.serverless.service, "plugins", []);
 		const slsPythonInstalled = plugins.includes("serverless-python-requirements");
-    
-		const ensureTracerInstalled = async (fileName) => {
+
+		const ensureTracerInstalled = async fileName => {
 			const requirementsExists = fs.pathExistsSync(fileName);
-      
+
 			if (!requirementsExists) {
 				let errorMessage = `${fileName} is not found.`;
 				if (!slsPythonInstalled) {
@@ -147,31 +149,34 @@ Consider using the serverless-python-requirements plugin to help you package Pyt
 				throw new this.serverless.classes.Error(errorMessage);
 			}
 		};
-		
+
 		const packageIndividually = _.get(
-			this.serverless.service, "package.individually", false);
-    
+			this.serverless.service,
+			"package.individually",
+			false
+		);
+
 		if (packageIndividually) {
-			this.log("functions are packed individually, ensuring each function has a requirement.txt...");
-			const { functions } = this.getFunctionsToWrap(
-				this.serverless.service
+			this.log(
+				"functions are packed individually, ensuring each function has a requirement.txt..."
 			);
+			const { functions } = this.getFunctionsToWrap(this.serverless.service);
 
 			for (const fn of functions) {
 				// functions/hello.world.handler -> functions
 				const dir = path.dirname(fn.handler);
-        
+
 				// there should be a requirements.txt in each function's folder
-				const requirementsFilename = path.join(dir, "requirements.txt");				
+				const requirementsFilename = path.join(dir, "requirements.txt");
 				await ensureTracerInstalled(requirementsFilename);
 			}
 		} else {
 			this.log("ensuring there is a requirement.txt or equivalent...");
-			const requirementsFilename = 
-        _.get(
-        	this.serverless.service, 
-        	"custom.pythonRequirements.fileName",
-        	"requirements.txt");
+			const requirementsFilename = _.get(
+				this.serverless.service,
+				"custom.pythonRequirements.fileName",
+				"requirements.txt"
+			);
 			await ensureTracerInstalled(requirementsFilename);
 		}
 	}
@@ -196,7 +201,7 @@ const handler = require('../${handlerModulePath}').${handlerFuncName};
 
 module.exports.${handlerFuncName} = tracer.trace(handler);
     `;
-    
+
 		// e.g. functions/hello.world -> hello.world.js
 		const fileName = handler.substr(0, handler.lastIndexOf(".")) + ".js";
 		// e.g. hello.world.js -> /Users/username/source/project/_lumigo/hello.world.js
@@ -204,27 +209,27 @@ module.exports.${handlerFuncName} = tracer.trace(handler);
 		this.verboseLog(`writing wrapper function to [${filePath}]...`);
 		await fs.outputFile(filePath, wrappedFunction);
 
-		// convert from abs path to relative path, e.g. 
+		// convert from abs path to relative path, e.g.
 		// /Users/username/source/project/_lumigo/hello.world.js -> _lumigo/hello.world.js
 		const newFilePath = path.relative(this.serverless.config.servicePath, filePath);
 		// e.g. _lumigo/hello.world.js -> _lumigo/hello.world.handler
 		return newFilePath.substr(0, newFilePath.lastIndexOf(".") + 1) + handlerFuncName;
 	}
-  
+
 	async createWrappedPythonFunction(func, token) {
 		this.verboseLog(`wrapping [${func.handler}]...`);
-		
+
 		// e.g. functions/hello.world.handler -> hello.world.handler
 		const handler = path.basename(func.handler);
-    
+
 		// e.g. functions/hello.world.handler -> functions.hello.world
 		const handlerModulePath = func.handler
 			.substr(0, func.handler.lastIndexOf("."))
-			.split("/")  // replace all occurances of "/""
+			.split("/") // replace all occurances of "/""
 			.join(".");
 		// e.g. functions/hello.world.handler -> handler
 		const handlerFuncName = handler.substr(handler.lastIndexOf(".") + 1);
-    
+
 		const wrappedFunction = `
 from lumigo_tracer import lumigo_tracer
 from ${handlerModulePath} import ${handlerFuncName} as userHandler
@@ -233,7 +238,7 @@ from ${handlerModulePath} import ${handlerFuncName} as userHandler
 def ${handlerFuncName}(event, context):
   userHandler(event, context)
     `;
-    
+
 		// e.g. functions/hello.world.handler -> hello.world.py
 		const fileName = handler.substr(0, handler.lastIndexOf(".")) + ".py";
 		// e.g. hello.world.py -> /Users/username/source/project/_lumigo/hello.world.py
@@ -241,7 +246,7 @@ def ${handlerFuncName}(event, context):
 		this.verboseLog(`writing wrapper function to [${filePath}]...`);
 		await fs.outputFile(filePath, wrappedFunction);
 
-		// convert from abs path to relative path, e.g. 
+		// convert from abs path to relative path, e.g.
 		// /Users/username/source/project/_lumigo/hello.world.py -> _lumigo/hello.world.py
 		const newFilePath = path.relative(this.serverless.config.servicePath, filePath);
 		// e.g. _lumigo/hello.world.py -> _lumigo/hello.world.handler
