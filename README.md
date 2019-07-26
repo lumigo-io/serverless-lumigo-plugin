@@ -1,7 +1,7 @@
 # serverless-lumigo
 
 [![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com)
-[![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 Serverless framework plugin to auto-install the Lumigo tracer for Node.js and Python functions.
 
