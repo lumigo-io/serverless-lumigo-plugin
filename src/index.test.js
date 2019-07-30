@@ -14,16 +14,17 @@ expect.extend({
 	toContainAllStrings(received, ...strings) {
 		const pass = strings.every(s => received.includes(s));
 		return {
-			message: () => `expected ${received} contain the strings [${strings.join(",")}]`,
-			pass,
+			message: () =>
+				`expected ${received} contain the strings [${strings.join(",")}]`,
+			pass
 		};
 	}
 });
-	
+
 describe("Lumigo plugin (node.js)", () => {
 	let serverless;
-	let lumigo;	
-  
+	let lumigo;
+
 	beforeEach(() => {
 		serverless = new Serverless();
 		serverless.servicePath = true;
@@ -32,19 +33,19 @@ describe("Lumigo plugin (node.js)", () => {
 		serverless.setProvider("aws", new AwsProvider(serverless));
 		serverless.cli = { log: jest.fn() };
 		serverless.service.functions = {
-			"hello": {
+			hello: {
 				handler: "hello.world",
 				events: []
 			},
-			"world": {
+			world: {
 				handler: "hello.world.handler",
 				events: []
 			},
-			"foo": {
+			foo: {
 				handler: "foo_bar.handler",
 				events: []
 			},
-			"bar": {
+			bar: {
 				handler: "foo-bar.handler",
 				events: []
 			}
@@ -54,6 +55,7 @@ describe("Lumigo plugin (node.js)", () => {
 				token: token
 			}
 		};
+		serverless.config.servicePath = __dirname;
 		childProcess.exec.mockImplementation((cmd, cb) => cb());
 		const LumigoPlugin = require("./index");
 		lumigo = new LumigoPlugin(serverless, {});
@@ -63,27 +65,27 @@ describe("Lumigo plugin (node.js)", () => {
 		beforeEach(() => {
 			serverless.service.provider.runtime = "nodejs8.10";
 		});
-    
-		test("it should wrap all functions after package initialize", async () => {			
+
+		test("it should wrap all functions after package initialize", async () => {
 			await lumigo.afterPackageInitialize();
 			assertNodejsFunctionsAreWrapped();
 		});
-    
+
 		test("it should clean up after deployment artefact is created", async () => {
 			await lumigo.afterCreateDeploymentArtifacts();
 			assertNodejsFunctionsAreCleanedUp();
 		});
-    
+
 		describe("there are no functions", () => {
 			beforeEach(() => {
 				serverless.service.functions = {};
 			});
-      
-			test("it shouldn't wrap any function after package initialize", async () => {			
+
+			test("it shouldn't wrap any function after package initialize", async () => {
 				await lumigo.afterPackageInitialize();
 				assertFunctionsAreNotWrapped();
 			});
-      
+
 			test("it does nothing after deployment artefact is created", async () => {
 				await lumigo.afterCreateDeploymentArtifacts();
 				assertNothingHappens();
@@ -95,27 +97,27 @@ describe("Lumigo plugin (node.js)", () => {
 		beforeEach(() => {
 			serverless.service.provider.runtime = "nodejs10.x";
 		});
-    
-		test("it should wrap all functions after package initialize", async () => {			
+
+		test("it should wrap all functions after package initialize", async () => {
 			await lumigo.afterPackageInitialize();
 			assertNodejsFunctionsAreWrapped();
 		});
-    
+
 		test("it should clean up after deployment artefact is created", async () => {
 			await lumigo.afterCreateDeploymentArtifacts();
 			assertNodejsFunctionsAreCleanedUp();
 		});
-    
+
 		describe("there are no functions", () => {
 			beforeEach(() => {
 				serverless.service.functions = {};
 			});
-      
-			test("it shouldn't wrap any function after package initialize", async () => {			
+
+			test("it shouldn't wrap any function after package initialize", async () => {
 				await lumigo.afterPackageInitialize();
 				assertFunctionsAreNotWrapped();
 			});
-      
+
 			test("it does nothing after deployment artefact is created", async () => {
 				await lumigo.afterCreateDeploymentArtifacts();
 				assertNothingHappens();
@@ -126,8 +128,8 @@ describe("Lumigo plugin (node.js)", () => {
 
 describe("Lumigo plugin (python)", () => {
 	let serverless;
-	let lumigo;	
-  
+	let lumigo;
+
 	beforeEach(() => {
 		serverless = new Serverless();
 		serverless.servicePath = true;
@@ -136,19 +138,19 @@ describe("Lumigo plugin (python)", () => {
 		serverless.setProvider("aws", new AwsProvider(serverless));
 		serverless.cli = { log: jest.fn() };
 		serverless.service.functions = {
-			"hello": {
+			hello: {
 				handler: "hello.world",
 				events: []
 			},
-			"world": {
+			world: {
 				handler: "hello.world.handler",
 				events: []
 			},
-			"foo": {
+			foo: {
 				handler: "foo/foo/bar.handler",
 				events: []
 			},
-			"bar": {
+			bar: {
 				handler: "foo.bar/zoo.handler",
 				events: []
 			}
@@ -158,6 +160,7 @@ describe("Lumigo plugin (python)", () => {
 				token: token
 			}
 		};
+		serverless.config.servicePath = __dirname;
 		childProcess.exec.mockImplementation((cmd, cb) => cb());
 		const LumigoPlugin = require("./index");
 		lumigo = new LumigoPlugin(serverless, {});
@@ -167,12 +170,12 @@ describe("Lumigo plugin (python)", () => {
 		beforeEach(() => {
 			serverless.service.provider.runtime = "python2.7";
 		});
-    
-		test("it shouldn't wrap any function after package initialize", async () => {			
+
+		test("it shouldn't wrap any function after package initialize", async () => {
 			await lumigo.afterPackageInitialize();
 			assertFunctionsAreNotWrapped();
 		});
-    
+
 		test("it does nothing after deployment artefact is created", async () => {
 			await lumigo.afterCreateDeploymentArtifacts();
 			assertNothingHappens();
@@ -181,25 +184,25 @@ describe("Lumigo plugin (python)", () => {
 
 	describe("python3.7", () => {
 		beforeEach(() => {
-			serverless.service.provider.runtime = "python3.7";			
+			serverless.service.provider.runtime = "python3.7";
 		});
-    
+
 		describe("there are no functions", () => {
 			beforeEach(() => {
 				serverless.service.functions = {};
 			});
-      
-			test("it shouldn't wrap any function after package initialize", async () => {			
+
+			test("it shouldn't wrap any function after package initialize", async () => {
 				await lumigo.afterPackageInitialize();
 				assertFunctionsAreNotWrapped();
 			});
-      
+
 			test("it does nothing after deployment artefact is created", async () => {
 				await lumigo.afterCreateDeploymentArtifacts();
 				assertNothingHappens();
 			});
 		});
-    
+
 		test("it should wrap all functions after package initialize", async () => {
 			fs.pathExistsSync.mockReturnValue(true);
 			fs.readFile.mockReturnValue(`
@@ -210,33 +213,33 @@ lumigo_tracer`);
 			await lumigo.afterPackageInitialize();
 			assertPythonFunctionsAreWrapped();
 		});
-    
+
 		test("it should clean up after deployment artefact is created", async () => {
 			await lumigo.afterCreateDeploymentArtifacts();
 			assertPythonFunctionsAreCleanedUp();
 		});
-    
+
 		describe("if there is override file name for requirements.txt (for the serverless-python-requirements plugin)", () => {
 			beforeEach(() => {
 				serverless.service.custom.pythonRequirements = {
 					fileName: "requirements-dev.txt"
 				};
 			});
-      
+
 			test("it should check the requirements for the override file", async () => {
 				fs.pathExistsSync.mockReturnValue(true);
 				fs.readFile.mockReturnValue(`
   --index-url https://1wmWND-GD5RPAwKgsdvb6DphXCj0vPLs@pypi.fury.io/lumigo/
   --extra-index-url https://pypi.org/simple/
   lumigo_tracer`);
-  
+
 				await lumigo.afterPackageInitialize();
 				assertPythonFunctionsAreWrapped();
 				expect(fs.pathExistsSync).toBeCalledWith("requirements-dev.txt");
 				expect(fs.readFile).toBeCalledWith("requirements-dev.txt", "utf8");
 			});
 		});
-    
+
 		describe("if the requirements.txt is missing", () => {
 			beforeEach(() => {
 				fs.pathExistsSync.mockReturnValue(false);
@@ -247,7 +250,7 @@ lumigo_tracer`);
 				expect(fs.pathExistsSync).toBeCalledWith("requirements.txt");
 			});
 		});
-    
+
 		describe("if the requirements.txt does not have lumigo_tracer", () => {
 			beforeEach(() => {
 				fs.pathExistsSync.mockReturnValue(true);
@@ -260,47 +263,57 @@ lumigo_tracer`);
 				expect(fs.readFile).toBeCalledWith("requirements.txt", "utf8");
 			});
 		});
-    
+
 		describe("if functions are packed individually", () => {
 			beforeEach(() => {
 				serverless.service.package = {
 					individually: true
 				};
 				serverless.service.functions = {
-					"hello": {
+					hello: {
 						handler: "functions/hello/hello.world",
 						events: []
 					},
-					"world": {
+					world: {
 						handler: "functions/world/world.handler",
 						events: []
 					}
 				};
 			});
-      
+
 			test("it should check the requirements.txt in each function's folder", async () => {
 				fs.pathExistsSync.mockReturnValue(true);
 				fs.readFile.mockReturnValue(`
   --index-url https://1wmWND-GD5RPAwKgsdvb6DphXCj0vPLs@pypi.fury.io/lumigo/
   --extra-index-url https://pypi.org/simple/
   lumigo_tracer`);
-  
+
 				await lumigo.afterPackageInitialize();
 				expect(fs.pathExistsSync).toBeCalledTimes(2);
-				expect(fs.pathExistsSync).toBeCalledWith("functions/hello/requirements.txt");
-				expect(fs.pathExistsSync).toBeCalledWith("functions/world/requirements.txt");
+				expect(fs.pathExistsSync).toBeCalledWith(
+					"functions/hello/requirements.txt"
+				);
+				expect(fs.pathExistsSync).toBeCalledWith(
+					"functions/world/requirements.txt"
+				);
 				expect(fs.readFile).toBeCalledTimes(2);
-				expect(fs.readFile).toBeCalledWith("functions/hello/requirements.txt", "utf8");
-				expect(fs.readFile).toBeCalledWith("functions/world/requirements.txt", "utf8");
+				expect(fs.readFile).toBeCalledWith(
+					"functions/hello/requirements.txt",
+					"utf8"
+				);
+				expect(fs.readFile).toBeCalledWith(
+					"functions/world/requirements.txt",
+					"utf8"
+				);
 			});
 		});
-	});	
+	});
 });
 
 describe("is not nodejs or python", () => {
 	let serverless;
-	let lumigo;	
-  
+	let lumigo;
+
 	beforeEach(() => {
 		serverless = new Serverless();
 		serverless.servicePath = true;
@@ -309,7 +322,7 @@ describe("is not nodejs or python", () => {
 		serverless.setProvider("aws", new AwsProvider(serverless));
 		serverless.cli = { log: jest.fn() };
 		serverless.service.functions = {
-			"hello": {
+			hello: {
 				handler: "com.serverless.Handler",
 				events: []
 			}
@@ -324,12 +337,12 @@ describe("is not nodejs or python", () => {
 		lumigo = new LumigoPlugin(serverless, {});
 		serverless.service.provider.runtime = "java8";
 	});
-  
-	test("it shouldn't wrap any function after package initialize", async () => {			
+
+	test("it shouldn't wrap any function after package initialize", async () => {
 		await lumigo.afterPackageInitialize();
 		assertFunctionsAreNotWrapped();
 	});
-  
+
 	test("it does nothing after deployment artefact is created", async () => {
 		await lumigo.afterCreateDeploymentArtifacts();
 		assertNothingHappens();
@@ -338,69 +351,79 @@ describe("is not nodejs or python", () => {
 
 function assertNodejsFunctionsAreWrapped() {
 	expect(childProcess.exec).toBeCalledWith(
-		"npm install @lumigo/tracer", expect.anything());
-        
+		"npm install @lumigo/tracer",
+		expect.anything()
+	);
+
 	expect(fs.outputFile).toBeCalledTimes(4);
 	expect(fs.outputFile).toBeCalledWith(
-		__dirname + "/_lumigo/hello.js", 
+		__dirname + "/_lumigo/hello.js",
 		expect.toContainAllStrings(
 			'const LumigoTracer = require("@lumigo/tracer");',
 			"const handler = require('../hello').world",
 			`token: '${token}'`
-		));
+		)
+	);
 	expect(fs.outputFile).toBeCalledWith(
 		__dirname + "/_lumigo/hello.world.js",
 		expect.toContainAllStrings(
 			'const LumigoTracer = require("@lumigo/tracer");',
 			"const handler = require('../hello.world').handler",
 			`token: '${token}'`
-		));
+		)
+	);
 	expect(fs.outputFile).toBeCalledWith(
-		__dirname + "/_lumigo/foo_bar.js", 
+		__dirname + "/_lumigo/foo_bar.js",
 		expect.toContainAllStrings(
 			'const LumigoTracer = require("@lumigo/tracer");',
 			"const handler = require('../foo_bar').handler",
 			`token: '${token}'`
-		));
+		)
+	);
 	expect(fs.outputFile).toBeCalledWith(
-		__dirname + "/_lumigo/foo-bar.js", 
+		__dirname + "/_lumigo/foo-bar.js",
 		expect.toContainAllStrings(
 			'const LumigoTracer = require("@lumigo/tracer");',
 			"const handler = require('../foo-bar').handler",
 			`token: '${token}'`
-		));
+		)
+	);
 }
 
-function assertPythonFunctionsAreWrapped() {	
+function assertPythonFunctionsAreWrapped() {
 	expect(fs.outputFile).toBeCalledTimes(4);
 	expect(fs.outputFile).toBeCalledWith(
-		__dirname + "/_lumigo/hello.py", 
+		__dirname + "/_lumigo/hello.py",
 		expect.toContainAllStrings(
 			"from lumigo_tracer import lumigo_tracer",
 			"from hello import world as userHandler",
 			`@lumigo_tracer(token='${token}')`
-		));
+		)
+	);
 	expect(fs.outputFile).toBeCalledWith(
 		__dirname + "/_lumigo/hello.world.py",
 		expect.toContainAllStrings(
 			"from lumigo_tracer import lumigo_tracer",
 			"from hello.world import handler as userHandler",
 			`@lumigo_tracer(token='${token}')`
-		));
+		)
+	);
 	expect(fs.outputFile).toBeCalledWith(
-		__dirname + "/_lumigo/bar.py", 
+		__dirname + "/_lumigo/bar.py",
 		expect.toContainAllStrings(
 			"from lumigo_tracer import lumigo_tracer",
 			"from foo.foo.bar import handler as userHandler",
 			`@lumigo_tracer(token='${token}')`
-		));
+		)
+	);
 	expect(fs.outputFile).toBeCalledWith(
-		__dirname + "/_lumigo/zoo.py", 
+		__dirname + "/_lumigo/zoo.py",
 		expect.toContainAllStrings(
 			"from lumigo_tracer import lumigo_tracer",
 			"from foo.bar.zoo import handler as userHandler",
 			`@lumigo_tracer(token='${token}')`
-		));
+		)
+	);
 }
 
 function assertFunctionsAreNotWrapped() {
@@ -411,7 +434,9 @@ function assertFunctionsAreNotWrapped() {
 function assertNodejsFunctionsAreCleanedUp() {
 	expect(fs.remove).toBeCalledWith(__dirname + "/_lumigo");
 	expect(childProcess.exec).toBeCalledWith(
-		"npm uninstall @lumigo/tracer", expect.anything());
+		"npm uninstall @lumigo/tracer",
+		expect.anything()
+	);
 }
 
 function assertPythonFunctionsAreCleanedUp() {
