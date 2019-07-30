@@ -61,5 +61,5 @@ provider:
 
 custom:
   lumigo:
-    <YOUR TOKEN GOES HERE>
+    token: <YOUR TOKEN GOES HERE>
 ```
