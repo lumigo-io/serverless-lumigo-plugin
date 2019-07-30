@@ -8,6 +8,8 @@ Serverless framework plugin to auto-install the Lumigo tracer for Node.js and Py
 ## TOC
 
 - [Install](#install)
+- [Node.js functions](#nodejs-functions)
+- [Python functions](#python-functions)
 
 ## Install
 
