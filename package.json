@@ -1,5 +1,5 @@
 {
-    "name": "@lumigo/serverless-lumigo",
+    "name": "serverless-lumigo",
     "version": "0.0.0-dev",
     "description": "Serverless framework plugin to auto-install the Lumigo tracer",
     "main": "src/index.js",
