@@ -8,8 +8,7 @@ jobs:
     steps:
       - checkout
       - run: npm ci
-      - run: ./checks.sh
-      - run: npm run test
+      - run: ./scripts/checks.sh
 
   deploy:
     docker:
@@ -17,6 +16,7 @@ jobs:
     working_directory: ~/serverless-lumigo
     steps:
       - checkout
+      - run: npm ci
       - run: npm run semantic-release
 
 workflows:
