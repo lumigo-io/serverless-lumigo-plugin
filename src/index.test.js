@@ -306,14 +306,14 @@ lumigo_tracer`);
 					"utf8"
 				);
 			});
-      
+
 			describe("if there is override file name for requirements.txt", () => {
 				beforeEach(() => {
 					serverless.service.custom.pythonRequirements = {
 						fileName: "requirements-dev.txt"
 					};
 				});
-        
+
 				test("it should check the requirements for the override file", async () => {
 					fs.pathExistsSync.mockReturnValue(true);
 					fs.readFile.mockReturnValue(`
@@ -322,18 +322,18 @@ lumigo_tracer`);
   lumigo_tracer`);
 
 					await lumigo.afterPackageInitialize();
-          
+
 					expect(fs.pathExistsSync).toBeCalledTimes(2);
 					expect(fs.pathExistsSync).toBeCalledWith("requirements-dev.txt");
 					expect(fs.readFile).toBeCalledWith("requirements-dev.txt", "utf8");
-          
+
 					expect(fs.pathExistsSync).not.toBeCalledWith(
 						"functions/hello/requirements.txt"
 					);
 					expect(fs.pathExistsSync).not.toBeCalledWith(
 						"functions/world/requirements.txt"
 					);
-          
+
 					expect(fs.readFile).not.toBeCalledWith(
 						"functions/hello/requirements.txt",
 						"utf8"

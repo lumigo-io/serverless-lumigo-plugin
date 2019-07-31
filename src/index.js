@@ -173,7 +173,7 @@ Consider using the serverless-python-requirements plugin to help you package Pyt
 					this.serverless.service,
 					"custom.pythonRequirements.fileName",
 					defaultRequirementsFilename
-				);        
+				);
 				await ensureTracerInstalled(requirementsFilename);
 			}
 		} else {
