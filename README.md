@@ -1,6 +1,7 @@
 # serverless-lumigo
 
 [![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com)
+[![version](https://badge.fury.io/js/serverless-lumigo.svg)](https://www.npmjs.com/package/serverless-lumigo)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 Serverless framework plugin to auto-install the Lumigo tracer for Node.js and Python functions.
