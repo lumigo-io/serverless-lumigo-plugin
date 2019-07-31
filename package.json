@@ -4,6 +4,7 @@
     "description": "Serverless framework plugin to auto-install the Lumigo tracer",
     "main": "src/index.js",
     "scripts": {
+        "codecov": "codecov",
         "test": "jest --config=jest.config.js",
         "test:lint": "eslint .",
         "semantic-release": "semantic-release",
@@ -15,7 +16,7 @@
         "LICENSE",
         "package.json",
         "README.md"
-      ],
+    ],
     "repository": {
         "type": "git",
         "url": "git+https://github.com/lumigo-io/serverless-lumigo.git"
@@ -35,7 +36,7 @@
         "amazon",
         "amazon web services",
         "serverless.com"
-      ],
+    ],
     "author": "Lumigo LTD (https://lumigo.io)",
     "license": "Apache 2",
     "bugs": {
@@ -50,6 +51,7 @@
     "devDependencies": {
         "@commitlint/cli": "^8.1.0",
         "@commitlint/config-conventional": "^8.0.0",
+        "codecov": "^3.5.0",
         "coveralls": "^3.0.2",
         "eslint": "^5.13.0",
         "eslint-config-prettier": "^6.0.0",
