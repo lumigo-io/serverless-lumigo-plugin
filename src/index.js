@@ -167,7 +167,13 @@ Consider using the serverless-python-requirements plugin to help you package Pyt
 				const dir = path.dirname(fn.handler);
 
 				// there should be a requirements.txt in each function's folder
-				const requirementsFilename = path.join(dir, "requirements.txt");
+				// unless there's an override
+				const defaultRequirementsFilename = path.join(dir, "requirements.txt");
+				const requirementsFilename = _.get(
+					this.serverless.service,
+					"custom.pythonRequirements.fileName",
+					defaultRequirementsFilename
+				);
 				await ensureTracerInstalled(requirementsFilename);
 			}
 		} else {
