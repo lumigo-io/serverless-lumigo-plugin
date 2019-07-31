@@ -15,7 +15,7 @@ Serverless framework plugin to auto-install the Lumigo tracer for Node.js and Py
 
 Run `npm install` in your Serverless project.
 
-`$ npm install --save-dev @lumigo/serverless-lumigo`
+`$ npm install --save-dev serverless-lumigo`
 
 Add the plugin to your serverless.yml file
 
