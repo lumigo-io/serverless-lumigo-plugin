@@ -359,7 +359,7 @@ function assertNodejsFunctionsAreWrapped() {
 	expect(fs.outputFile).toBeCalledWith(
 		__dirname + "/_lumigo/hello.js",
 		expect.toContainAllStrings(
-			'const LumigoTracer = require("@lumigo/tracer");',
+			'const tracer = require("@lumigo/node-tracer")',
 			"const handler = require('../hello').world",
 			`token: '${token}'`
 		)
@@ -367,7 +367,7 @@ function assertNodejsFunctionsAreWrapped() {
 	expect(fs.outputFile).toBeCalledWith(
 		__dirname + "/_lumigo/hello.world.js",
 		expect.toContainAllStrings(
-			'const LumigoTracer = require("@lumigo/tracer");',
+			'const tracer = require("@lumigo/node-tracer")',
 			"const handler = require('../hello.world').handler",
 			`token: '${token}'`
 		)
@@ -375,7 +375,7 @@ function assertNodejsFunctionsAreWrapped() {
 	expect(fs.outputFile).toBeCalledWith(
 		__dirname + "/_lumigo/foo_bar.js",
 		expect.toContainAllStrings(
-			'const LumigoTracer = require("@lumigo/tracer");',
+			'const tracer = require("@lumigo/node-tracer")',
 			"const handler = require('../foo_bar').handler",
 			`token: '${token}'`
 		)
@@ -383,7 +383,7 @@ function assertNodejsFunctionsAreWrapped() {
 	expect(fs.outputFile).toBeCalledWith(
 		__dirname + "/_lumigo/foo-bar.js",
 		expect.toContainAllStrings(
-			'const LumigoTracer = require("@lumigo/tracer");',
+			'const tracer = require("@lumigo/node-tracer")',
 			"const handler = require('../foo-bar').handler",
 			`token: '${token}'`
 		)
