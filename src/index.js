@@ -203,9 +203,8 @@ Consider using the serverless-python-requirements plugin to help you package Pyt
 		const handlerFuncName = handler.substr(handler.lastIndexOf(".") + 1);
 
 		const wrappedFunction = `
-const LumigoTracer = require("@lumigo/tracer");
-const tracer = new LumigoTracer({
-  token: '${token}'
+const tracer = require("@lumigo/node-tracer")({
+	token: '${token}'
 });
 const handler = require('../${handlerModulePath}').${handlerFuncName};
 
