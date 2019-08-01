@@ -72,13 +72,11 @@ class LumigoPlugin {
 	}
 
 	getFunctionsToWrap(service) {
-		const functions = service
-			.getAllFunctions()
-			.map(localName => {
-				const x = _.cloneDeep(service.getFunction(localName));
-				x.localName = localName;
-				return x;
-			});
+		const functions = service.getAllFunctions().map(localName => {
+			const x = _.cloneDeep(service.getFunction(localName));
+			x.localName = localName;
+			return x;
+		});
 
 		if (service.provider.runtime.startsWith("nodejs")) {
 			return { runtime: "nodejs", functions };
@@ -193,7 +191,7 @@ Consider using the serverless-python-requirements plugin to help you package Pyt
 
 	async createWrappedNodejsFunction(func, token) {
 		this.verboseLog(`wrapping [${func.handler}]...`);
-    
+
 		const localName = func.localName;
 
 		// e.g. functions/hello.world.handler -> hello.world.handler
