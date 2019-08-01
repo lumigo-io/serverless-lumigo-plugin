@@ -72,9 +72,11 @@ class LumigoPlugin {
 	}
 
 	getFunctionsToWrap(service) {
-		const functions = service
-			.getAllFunctions()
-			.map(name => service.getFunction(name));
+		const functions = service.getAllFunctions().map(localName => {
+			const x = _.cloneDeep(service.getFunction(localName));
+			x.localName = localName;
+			return x;
+		});
 
 		if (service.provider.runtime.startsWith("nodejs")) {
 			return { runtime: "nodejs", functions };
@@ -190,6 +192,8 @@ Consider using the serverless-python-requirements plugin to help you package Pyt
 	async createWrappedNodejsFunction(func, token) {
 		this.verboseLog(`wrapping [${func.handler}]...`);
 
+		const localName = func.localName;
+
 		// e.g. functions/hello.world.handler -> hello.world.handler
 		const handler = path.basename(func.handler);
 
@@ -207,8 +211,7 @@ const handler = require('../${handlerModulePath}').${handlerFuncName};
 module.exports.${handlerFuncName} = tracer.trace(handler);
     `;
 
-		// e.g. functions/hello.world -> hello.world.js
-		const fileName = handler.substr(0, handler.lastIndexOf(".")) + ".js";
+		const fileName = localName + ".js";
 		// e.g. hello.world.js -> /Users/username/source/project/_lumigo/hello.world.js
 		const filePath = path.join(this.folderPath, fileName);
 		this.verboseLog(`writing wrapper function to [${filePath}]...`);
@@ -223,6 +226,8 @@ module.exports.${handlerFuncName} = tracer.trace(handler);
 
 	async createWrappedPythonFunction(func, token) {
 		this.verboseLog(`wrapping [${func.handler}]...`);
+
+		const localName = func.localName;
 
 		// e.g. functions/hello.world.handler -> hello.world.handler
 		const handler = path.basename(func.handler);
@@ -244,8 +249,7 @@ def ${handlerFuncName}(event, context):
   userHandler(event, context)
     `;
 
-		// e.g. functions/hello.world.handler -> hello.world.py
-		const fileName = handler.substr(0, handler.lastIndexOf(".")) + ".py";
+		const fileName = localName + ".py";
 		// e.g. hello.world.py -> /Users/username/source/project/_lumigo/hello.world.py
 		const filePath = path.join(this.folderPath, fileName);
 		this.verboseLog(`writing wrapper function to [${filePath}]...`);
