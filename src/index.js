@@ -55,6 +55,12 @@ class LumigoPlugin {
 				func.handler = handler;
 			}
 		}
+
+		if (this.serverless.service.package) {
+			const include = this.serverless.service.package.include || [];
+			include.push("_lumigo/*");
+			this.serverless.service.package.include = include;
+		}
 	}
 
 	async afterCreateDeploymentArtifacts() {
