@@ -55,7 +55,7 @@ class LumigoPlugin {
 				func.handler = handler;
 			}
 		}
-    
+
 		const packageIndividually = _.get(
 			this.serverless.service,
 			"package.individually",
@@ -64,10 +64,14 @@ class LumigoPlugin {
 
 		if (packageIndividually) {
 			functions.forEach(fn => {
-				const p = _.get(this.serverless.service.functions[fn.localName], "package", {});
+				const p = _.get(
+					this.serverless.service.functions[fn.localName],
+					"package",
+					{}
+				);
 				const include = _.get(p, "include", []);
 				include.push("_lumigo/*");
-				
+
 				p.include = include;
 				this.serverless.service.functions[fn.localName].package = p;
 			});

@@ -99,26 +99,26 @@ describe("Lumigo plugin (node.js)", () => {
 				assertNothingHappens();
 			});
 		});
-    
+
 		describe("when functions are packaged individually", () => {
 			beforeEach(() => {
 				serverless.service.package = {
 					individually: true
 				};
 			});
-      
-			test("if package.include is not set, it's initialized with _lumigo/*", async () => {    
+
+			test("if package.include is not set, it's initialized with _lumigo/*", async () => {
 				await lumigo.afterPackageInitialize();
 				assertLumigoIsIncluded();
 			});
-      
+
 			test("if package.include is set, it adds _lumigo/* to the array", async () => {
 				Object.values(serverless.service.functions).forEach(fun => {
 					fun.package = {
 						include: ["node_modules/**/*"]
 					};
 				});
-    
+
 				await lumigo.afterPackageInitialize();
 				assertLumigoIsIncluded();
 			});
@@ -155,26 +155,26 @@ describe("Lumigo plugin (node.js)", () => {
 				assertNothingHappens();
 			});
 		});
-    
+
 		describe("when functions are packaged individually", () => {
 			beforeEach(() => {
 				serverless.service.package = {
 					individually: true
 				};
 			});
-      
-			test("if package.include is not set, it's initialized with _lumigo/*", async () => {    
+
+			test("if package.include is not set, it's initialized with _lumigo/*", async () => {
 				await lumigo.afterPackageInitialize();
 				assertLumigoIsIncluded();
 			});
-      
+
 			test("if package.include is set, it adds _lumigo/* to the array", async () => {
 				Object.values(serverless.service.functions).forEach(fun => {
 					fun.package = {
 						include: ["node_modules/**/*"]
 					};
 				});
-    
+
 				await lumigo.afterPackageInitialize();
 				assertLumigoIsIncluded();
 			});
@@ -361,19 +361,19 @@ lumigo_tracer`);
 					);
 				});
 			});
-      
-			test("if package.include is not set, it's initialized with _lumigo/*", async () => {    
+
+			test("if package.include is not set, it's initialized with _lumigo/*", async () => {
 				await lumigo.afterPackageInitialize();
 				assertLumigoIsIncluded();
 			});
-        
+
 			test("if package.include is set, it adds _lumigo/* to the array", async () => {
 				Object.values(serverless.service.functions).forEach(fun => {
 					fun.package = {
 						include: ["functions/**/*"]
 					};
 				});
-      
+
 				await lumigo.afterPackageInitialize();
 				assertLumigoIsIncluded();
 			});
