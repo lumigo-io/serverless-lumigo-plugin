@@ -21,46 +21,54 @@ expect.extend({
 	}
 });
 
+let serverless;
+let lumigo;
+
+beforeEach(() => {
+	serverless = new Serverless();
+	serverless.servicePath = true;
+	serverless.service.service = "lumigo-test";
+	serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
+	serverless.setProvider("aws", new AwsProvider(serverless));
+	serverless.cli = { log: jest.fn() };
+	serverless.service.functions = {
+		hello: {
+			handler: "hello.world",
+			events: []
+		},
+		"hello.world": {
+			handler: "hello.world.handler", // . in the filename
+			events: []
+		},
+		foo: {
+			handler: "foo_bar.handler", // both pointing to same handler
+			events: []
+		},
+		bar: {
+			handler: "foo_bar.handler", // both pointing to same handler
+			events: []
+		},
+		jet: {
+			handler: "foo/foo/bar.handler", // / in the path
+			events: []
+		},
+		pack: {
+			handler: "foo.bar/zoo.handler", // . in file name and / in the path
+			events: []
+		}
+	};
+	serverless.service.custom = {
+		lumigo: {
+			token: token
+		}
+	};
+	serverless.config.servicePath = __dirname;
+	childProcess.exec.mockImplementation((cmd, cb) => cb());
+	const LumigoPlugin = require("./index");
+	lumigo = new LumigoPlugin(serverless, {});
+});
+
 describe("Lumigo plugin (node.js)", () => {
-	let serverless;
-	let lumigo;
-
-	beforeEach(() => {
-		serverless = new Serverless();
-		serverless.servicePath = true;
-		serverless.service.service = "lumigo-test";
-		serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
-		serverless.setProvider("aws", new AwsProvider(serverless));
-		serverless.cli = { log: jest.fn() };
-		serverless.service.functions = {
-			hello: {
-				handler: "hello.world",
-				events: []
-			},
-			"hello.world": {
-				handler: "hello.world.handler",
-				events: []
-			},
-			foo: {
-				handler: "foo_bar.handler", // both pointing to same handler
-				events: []
-			},
-			bar: {
-				handler: "foo_bar.handler", // both pointing to same handler
-				events: []
-			}
-		};
-		serverless.service.custom = {
-			lumigo: {
-				token: token
-			}
-		};
-		serverless.config.servicePath = __dirname;
-		childProcess.exec.mockImplementation((cmd, cb) => cb());
-		const LumigoPlugin = require("./index");
-		lumigo = new LumigoPlugin(serverless, {});
-	});
-
 	describe("nodejs8.10", () => {
 		beforeEach(() => {
 			serverless.service.provider.runtime = "nodejs8.10";
@@ -127,45 +135,6 @@ describe("Lumigo plugin (node.js)", () => {
 });
 
 describe("Lumigo plugin (python)", () => {
-	let serverless;
-	let lumigo;
-
-	beforeEach(() => {
-		serverless = new Serverless();
-		serverless.servicePath = true;
-		serverless.service.service = "lumigo-test";
-		serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
-		serverless.setProvider("aws", new AwsProvider(serverless));
-		serverless.cli = { log: jest.fn() };
-		serverless.service.functions = {
-			hello: {
-				handler: "hello.world",
-				events: []
-			},
-			world: {
-				handler: "hello.world.handler",
-				events: []
-			},
-			foo: {
-				handler: "foo/foo/bar.handler",
-				events: []
-			},
-			bar: {
-				handler: "foo.bar/zoo.handler",
-				events: []
-			}
-		};
-		serverless.service.custom = {
-			lumigo: {
-				token: token
-			}
-		};
-		serverless.config.servicePath = __dirname;
-		childProcess.exec.mockImplementation((cmd, cb) => cb());
-		const LumigoPlugin = require("./index");
-		lumigo = new LumigoPlugin(serverless, {});
-	});
-
 	describe("python2.7", () => {
 		beforeEach(() => {
 			serverless.service.provider.runtime = "python2.7";
@@ -393,7 +362,7 @@ function assertNodejsFunctionsAreWrapped() {
 		expect.anything()
 	);
 
-	expect(fs.outputFile).toBeCalledTimes(4);
+	expect(fs.outputFile).toBeCalledTimes(6);
 	expect(fs.outputFile).toBeCalledWith(
 		__dirname + "/_lumigo/hello.js",
 		expect.toContainAllStrings(
@@ -426,10 +395,26 @@ function assertNodejsFunctionsAreWrapped() {
 			`token: '${token}'`
 		)
 	);
+	expect(fs.outputFile).toBeCalledWith(
+		__dirname + "/_lumigo/jet.js",
+		expect.toContainAllStrings(
+			'const LumigoTracer = require("@lumigo/tracer");',
+			"const handler = require('../foo/foo/bar').handler",
+			`token: '${token}'`
+		)
+	);
+	expect(fs.outputFile).toBeCalledWith(
+		__dirname + "/_lumigo/pack.js",
+		expect.toContainAllStrings(
+			'const LumigoTracer = require("@lumigo/tracer");',
+			"const handler = require('../foo.bar/zoo').handler",
+			`token: '${token}'`
+		)
+	);
 }
 
 function assertPythonFunctionsAreWrapped() {
-	expect(fs.outputFile).toBeCalledTimes(4);
+	expect(fs.outputFile).toBeCalledTimes(6);
 	expect(fs.outputFile).toBeCalledWith(
 		__dirname + "/_lumigo/hello.py",
 		expect.toContainAllStrings(
@@ -447,7 +432,23 @@ function assertPythonFunctionsAreWrapped() {
 		)
 	);
 	expect(fs.outputFile).toBeCalledWith(
+		__dirname + "/_lumigo/foo.py",
+		expect.toContainAllStrings(
+			"from lumigo_tracer import lumigo_tracer",
+			"from foo_bar import handler as userHandler",
+			`@lumigo_tracer(token='${token}')`
+		)
+	);
+	expect(fs.outputFile).toBeCalledWith(
 		__dirname + "/_lumigo/bar.py",
+		expect.toContainAllStrings(
+			"from lumigo_tracer import lumigo_tracer",
+			"from foo_bar import handler as userHandler",
+			`@lumigo_tracer(token='${token}')`
+		)
+	);
+	expect(fs.outputFile).toBeCalledWith(
+		__dirname + "/_lumigo/jet.py",
 		expect.toContainAllStrings(
 			"from lumigo_tracer import lumigo_tracer",
 			"from foo.foo.bar import handler as userHandler",
@@ -455,7 +456,7 @@ function assertPythonFunctionsAreWrapped() {
 		)
 	);
 	expect(fs.outputFile).toBeCalledWith(
-		__dirname + "/_lumigo/zoo.py",
+		__dirname + "/_lumigo/pack.py",
 		expect.toContainAllStrings(
 			"from lumigo_tracer import lumigo_tracer",
 			"from foo.bar.zoo import handler as userHandler",

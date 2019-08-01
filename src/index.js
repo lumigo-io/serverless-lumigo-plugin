@@ -227,6 +227,8 @@ module.exports.${handlerFuncName} = tracer.trace(handler);
 
 	async createWrappedPythonFunction(func, token) {
 		this.verboseLog(`wrapping [${func.handler}]...`);
+    
+		const localName = func.localName;
 
 		// e.g. functions/hello.world.handler -> hello.world.handler
 		const handler = path.basename(func.handler);
@@ -248,8 +250,7 @@ def ${handlerFuncName}(event, context):
   userHandler(event, context)
     `;
 
-		// e.g. functions/hello.world.handler -> hello.world.py
-		const fileName = handler.substr(0, handler.lastIndexOf(".")) + ".py";
+		const fileName = localName + ".py";
 		// e.g. hello.world.py -> /Users/username/source/project/_lumigo/hello.world.py
 		const filePath = path.join(this.folderPath, fileName);
 		this.verboseLog(`writing wrapper function to [${filePath}]...`);
