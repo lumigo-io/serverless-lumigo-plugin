@@ -56,25 +56,10 @@ class LumigoPlugin {
 			}
 		}
 
-		const packageIndividually = _.get(
-			this.serverless.service,
-			"package.individually",
-			false
-		);
-
-		if (packageIndividually) {
-			functions.forEach(fn => {
-				const p = _.get(
-					this.serverless.service.functions[fn.localName],
-					"package",
-					{}
-				);
-				const include = _.get(p, "include", []);
-				include.push("_lumigo/*");
-
-				p.include = include;
-				this.serverless.service.functions[fn.localName].package = p;
-			});
+		if (this.serverless.service.package) {
+			const include = this.serverless.service.package.include || [];
+			include.push("_lumigo/*");
+			this.serverless.service.package.include = include;
 		}
 	}
 

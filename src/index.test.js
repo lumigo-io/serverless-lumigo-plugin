@@ -529,7 +529,5 @@ function assertNothingHappens() {
 }
 
 function assertLumigoIsIncluded() {
-	Object.values(serverless.service.functions).forEach(fun => {
-		expect(fun.package.include).toContain("_lumigo/*");
-	});
+	expect(serverless.service.package.include).toContain("_lumigo/*");
 }
