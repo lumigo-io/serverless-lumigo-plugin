@@ -227,7 +227,7 @@ module.exports.${handlerFuncName} = tracer.trace(handler);
 
 	async createWrappedPythonFunction(func, token) {
 		this.verboseLog(`wrapping [${func.handler}]...`);
-    
+
 		const localName = func.localName;
 
 		// e.g. functions/hello.world.handler -> hello.world.handler
