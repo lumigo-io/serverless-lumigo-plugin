@@ -37,16 +37,16 @@ describe("Lumigo plugin (node.js)", () => {
 				handler: "hello.world",
 				events: []
 			},
-			world: {
+			"hello.world": {
 				handler: "hello.world.handler",
 				events: []
 			},
 			foo: {
-				handler: "foo_bar.handler",
+				handler: "foo_bar.handler", // both pointing to same handler
 				events: []
 			},
 			bar: {
-				handler: "foo-bar.handler",
+				handler: "foo_bar.handler", // both pointing to same handler
 				events: []
 			}
 		};
@@ -411,7 +411,7 @@ function assertNodejsFunctionsAreWrapped() {
 		)
 	);
 	expect(fs.outputFile).toBeCalledWith(
-		__dirname + "/_lumigo/foo_bar.js",
+		__dirname + "/_lumigo/foo.js",
 		expect.toContainAllStrings(
 			'const LumigoTracer = require("@lumigo/tracer");',
 			"const handler = require('../foo_bar').handler",
@@ -419,10 +419,10 @@ function assertNodejsFunctionsAreWrapped() {
 		)
 	);
 	expect(fs.outputFile).toBeCalledWith(
-		__dirname + "/_lumigo/foo-bar.js",
+		__dirname + "/_lumigo/bar.js",
 		expect.toContainAllStrings(
 			'const LumigoTracer = require("@lumigo/tracer");',
-			"const handler = require('../foo-bar').handler",
+			"const handler = require('../foo_bar').handler",
 			`token: '${token}'`
 		)
 	);
