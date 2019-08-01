@@ -55,6 +55,23 @@ class LumigoPlugin {
 				func.handler = handler;
 			}
 		}
+    
+		const packageIndividually = _.get(
+			this.serverless.service,
+			"package.individually",
+			false
+		);
+
+		if (packageIndividually) {
+			functions.forEach(fn => {
+				const p = _.get(this.serverless.service.functions[fn.localName], "package", {});
+				const include = _.get(p, "include", []);
+				include.push("_lumigo/*");
+				
+				p.include = include;
+				this.serverless.service.functions[fn.localName].package = p;
+			});
+		}
 	}
 
 	async afterCreateDeploymentArtifacts() {
