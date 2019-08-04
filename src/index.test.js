@@ -7,6 +7,7 @@ jest.mock("fs-extra");
 jest.mock("child_process");
 
 const token = "test-token";
+const edgeHost = "edge-host";
 
 afterEach(() => jest.clearAllMocks());
 
@@ -59,7 +60,8 @@ beforeEach(() => {
 	};
 	serverless.service.custom = {
 		lumigo: {
-			token: token
+			token: token,
+			edgeHost: edgeHost
 		}
 	};
 	serverless.config.servicePath = __dirname;
@@ -68,6 +70,23 @@ beforeEach(() => {
 	lumigo = new LumigoPlugin(serverless, {});
 });
 
+describe("Invalid plugin configuration", () => {
+	beforeEach(() => {
+		serverless.service.provider.runtime = "nodejs8.10";
+	});
+
+	test("Token is not present, exception is thrown", async () => {
+		delete serverless.service.custom.lumigo["token"];
+		// https://github.com/facebook/jest/issues/1700
+		let error;
+		try {
+			await lumigo.afterPackageInitialize();
+		} catch (e) {
+			error = e;
+		}
+		expect(error).toBeTruthy();
+	});
+});
 describe("Lumigo plugin (node.js)", () => {
 	describe("nodejs8.10", () => {
 		beforeEach(() => {
@@ -97,6 +116,30 @@ describe("Lumigo plugin (node.js)", () => {
 			test("it does nothing after deployment artefact is created", async () => {
 				await lumigo.afterCreateDeploymentArtifacts();
 				assertNothingHappens();
+			});
+		});
+
+		describe("when functions are packaged individually", () => {
+			beforeEach(() => {
+				serverless.service.package = {
+					individually: true
+				};
+			});
+
+			test("if package.include is not set, it's initialized with _lumigo/*", async () => {
+				await lumigo.afterPackageInitialize();
+				assertLumigoIsIncluded();
+			});
+
+			test("if package.include is set, it adds _lumigo/* to the array", async () => {
+				Object.values(serverless.service.functions).forEach(fun => {
+					fun.package = {
+						include: ["node_modules/**/*"]
+					};
+				});
+
+				await lumigo.afterPackageInitialize();
+				assertLumigoIsIncluded();
 			});
 		});
 	});
@@ -129,6 +172,30 @@ describe("Lumigo plugin (node.js)", () => {
 			test("it does nothing after deployment artefact is created", async () => {
 				await lumigo.afterCreateDeploymentArtifacts();
 				assertNothingHappens();
+			});
+		});
+
+		describe("when functions are packaged individually", () => {
+			beforeEach(() => {
+				serverless.service.package = {
+					individually: true
+				};
+			});
+
+			test("if package.include is not set, it's initialized with _lumigo/*", async () => {
+				await lumigo.afterPackageInitialize();
+				assertLumigoIsIncluded();
+			});
+
+			test("if package.include is set, it adds _lumigo/* to the array", async () => {
+				Object.values(serverless.service.functions).forEach(fun => {
+					fun.package = {
+						include: ["node_modules/**/*"]
+					};
+				});
+
+				await lumigo.afterPackageInitialize();
+				assertLumigoIsIncluded();
 			});
 		});
 	});
@@ -313,35 +380,28 @@ lumigo_tracer`);
 					);
 				});
 			});
+
+			test("if package.include is not set, it's initialized with _lumigo/*", async () => {
+				await lumigo.afterPackageInitialize();
+				assertLumigoIsIncluded();
+			});
+
+			test("if package.include is set, it adds _lumigo/* to the array", async () => {
+				Object.values(serverless.service.functions).forEach(fun => {
+					fun.package = {
+						include: ["functions/**/*"]
+					};
+				});
+
+				await lumigo.afterPackageInitialize();
+				assertLumigoIsIncluded();
+			});
 		});
 	});
 });
 
 describe("is not nodejs or python", () => {
-	let serverless;
-	let lumigo;
-
 	beforeEach(() => {
-		serverless = new Serverless();
-		serverless.servicePath = true;
-		serverless.service.service = "lumigo-test";
-		serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
-		serverless.setProvider("aws", new AwsProvider(serverless));
-		serverless.cli = { log: jest.fn() };
-		serverless.service.functions = {
-			hello: {
-				handler: "com.serverless.Handler",
-				events: []
-			}
-		};
-		serverless.service.custom = {
-			lumigo: {
-				token: token
-			}
-		};
-		childProcess.exec.mockImplementation((cmd, cb) => cb());
-		const LumigoPlugin = require("./index");
-		lumigo = new LumigoPlugin(serverless, {});
 		serverless.service.provider.runtime = "java8";
 	});
 
@@ -368,7 +428,8 @@ function assertNodejsFunctionsAreWrapped() {
 		expect.toContainAllStrings(
 			'const tracer = require("@lumigo/node-tracer")',
 			"const handler = require('../hello').world",
-			`token: '${token}'`
+			`token: '${token}'`,
+			`edgeHost: '${edgeHost}'`
 		)
 	);
 	expect(fs.outputFile).toBeCalledWith(
@@ -485,4 +546,8 @@ function assertPythonFunctionsAreCleanedUp() {
 function assertNothingHappens() {
 	expect(fs.remove).not.toBeCalled();
 	expect(childProcess.exec).not.toBeCalled();
+}
+
+function assertLumigoIsIncluded() {
+	expect(serverless.service.package.include).toContain("_lumigo/*");
 }

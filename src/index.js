@@ -38,16 +38,21 @@ class LumigoPlugin {
 
 		const token = _.get(this.serverless.service, "custom.lumigo.token");
 		const edgeHost = _.get(this.serverless.service, "custom.lumigo.edgeHost");
-		
 		if (token === undefined) {
-			throw new this.serverless.classes.Error("serverless-lumigo: Unable to find token. Please follow https://github.com/lumigo-io/lumigo-node");
+			throw new this.serverless.classes.Error(
+				"serverless-lumigo: Unable to find token. Please follow https://github.com/lumigo-io/lumigo-node"
+			);
 		}
 
 		if (runtime === "nodejs") {
 			await this.installLumigoNodejs();
 
 			for (const func of functions) {
-				const handler = await this.createWrappedNodejsFunction(func, token, edgeHost);
+				const handler = await this.createWrappedNodejsFunction(
+					func,
+					token,
+					edgeHost
+				);
 				// replace the function handler to the wrapped function
 				func.handler = handler;
 			}
@@ -55,10 +60,20 @@ class LumigoPlugin {
 			await this.ensureLumigoPythonIsInstalled();
 
 			for (const func of functions) {
-				const handler = await this.createWrappedPythonFunction(func, token, edgeHost);
+				const handler = await this.createWrappedPythonFunction(
+					func,
+					token,
+					edgeHost
+				);
 				// replace the function handler to the wrapped function
 				func.handler = handler;
 			}
+		}
+
+		if (this.serverless.service.package) {
+			const include = this.serverless.service.package.include || [];
+			include.push("_lumigo/*");
+			this.serverless.service.package.include = include;
 		}
 	}
 
@@ -200,9 +215,8 @@ Consider using the serverless-python-requirements plugin to help you package Pyt
 		}
 		let configuration = [`token: '${token}'`];
 		if (edgeHost) {
-			configuration.push(`edgeHost: ${edgeHost}`);
+			configuration.push(`edgeHost: '${edgeHost}'`);
 		}
-
 		return configuration.join(",");
 	}
 	async createWrappedNodejsFunction(func, token, edgeHost) {
