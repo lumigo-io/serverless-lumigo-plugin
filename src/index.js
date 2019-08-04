@@ -37,12 +37,17 @@ class LumigoPlugin {
 		}
 
 		const token = _.get(this.serverless.service, "custom.lumigo.token");
+		const edgeHost = _.get(this.serverless.service, "custom.lumigo.edgeHost");
+		
+		if (token === undefined) {
+			throw new this.serverless.classes.Error("serverless-lumigo: Unable to find token. Please follow https://github.com/lumigo-io/lumigo-node");
+		}
 
 		if (runtime === "nodejs") {
 			await this.installLumigoNodejs();
 
 			for (const func of functions) {
-				const handler = await this.createWrappedNodejsFunction(func, token);
+				const handler = await this.createWrappedNodejsFunction(func, token, edgeHost);
 				// replace the function handler to the wrapped function
 				func.handler = handler;
 			}
@@ -50,7 +55,7 @@ class LumigoPlugin {
 			await this.ensureLumigoPythonIsInstalled();
 
 			for (const func of functions) {
-				const handler = await this.createWrappedPythonFunction(func, token);
+				const handler = await this.createWrappedPythonFunction(func, token, edgeHost);
 				// replace the function handler to the wrapped function
 				func.handler = handler;
 			}
@@ -189,7 +194,18 @@ Consider using the serverless-python-requirements plugin to help you package Pyt
 		}
 	}
 
-	async createWrappedNodejsFunction(func, token) {
+	getNodeTracerParameters(token, edgeHost) {
+		if (token === undefined) {
+			throw new this.serverless.classes.Error("Lumigo's tracer token is undefined");
+		}
+		let configuration = [`token: '${token}'`];
+		if (edgeHost) {
+			configuration.push(`edgeHost: ${edgeHost}`);
+		}
+
+		return configuration.join(",");
+	}
+	async createWrappedNodejsFunction(func, token, edgeHost) {
 		this.verboseLog(`wrapping [${func.handler}]...`);
 
 		const localName = func.localName;
@@ -201,10 +217,9 @@ Consider using the serverless-python-requirements plugin to help you package Pyt
 		const handlerModulePath = func.handler.substr(0, func.handler.lastIndexOf("."));
 		// e.g. functions/hello.world.handler -> handler
 		const handlerFuncName = handler.substr(handler.lastIndexOf(".") + 1);
-
 		const wrappedFunction = `
 const tracer = require("@lumigo/node-tracer")({
-	token: '${token}'
+	${this.getNodeTracerParameters(token, edgeHost)}
 });
 const handler = require('../${handlerModulePath}').${handlerFuncName};
 
