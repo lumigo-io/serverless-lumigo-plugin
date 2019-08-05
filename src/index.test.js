@@ -68,7 +68,7 @@ beforeEach(() => {
 	childProcess.exec.mockImplementation((cmd, cb) => cb());
 	const LumigoPlugin = require("./index");
 	lumigo = new LumigoPlugin(serverless, {});
-  
+
 	delete process.env.SLS_DEBUG;
 });
 
@@ -127,17 +127,19 @@ describe("Lumigo plugin (node.js)", () => {
 				assertLumigoIsIncluded();
 			});
 		});
-    
+
 		describe("if verbose logging is enabled", () => {
 			beforeEach(() => {
 				process.env.SLS_DEBUG = "*";
 			});
-      
+
 			test("it should publish debug messages", async () => {
 				await lumigo.afterPackageInitialize();
 
 				const logs = log.mock.calls.map(x => x[0]);
-				expect(logs).toContain("serverless-lumigo: setting [hello]'s handler to [_lumigo/hello.world]...");
+				expect(logs).toContain(
+					"serverless-lumigo: setting [hello]'s handler to [_lumigo/hello.world]..."
+				);
 			});
 		});
 	});
@@ -196,17 +198,19 @@ describe("Lumigo plugin (node.js)", () => {
 				assertLumigoIsIncluded();
 			});
 		});
-    
+
 		describe("if verbose logging is enabled", () => {
 			beforeEach(() => {
 				process.env.SLS_DEBUG = "*";
 			});
-      
+
 			test("it should publish debug messages", async () => {
 				await lumigo.afterPackageInitialize();
 
 				const logs = log.mock.calls.map(x => x[0]);
-				expect(logs).toContain("serverless-lumigo: setting [hello]'s handler to [_lumigo/hello.world]...");
+				expect(logs).toContain(
+					"serverless-lumigo: setting [hello]'s handler to [_lumigo/hello.world]..."
+				);
 			});
 		});
 	});
@@ -408,12 +412,12 @@ lumigo_tracer`);
 				assertLumigoIsIncluded();
 			});
 		});
-    
+
 		describe("if verbose logging is enabled", () => {
 			beforeEach(() => {
 				process.env.SLS_DEBUG = "*";
 			});
-      
+
 			test("it should publish debug messages", async () => {
 				fs.pathExistsSync.mockReturnValue(true);
 				fs.readFile.mockReturnValue(`
@@ -424,7 +428,9 @@ lumigo_tracer`);
 				await lumigo.afterPackageInitialize();
 
 				const logs = log.mock.calls.map(x => x[0]);
-				expect(logs).toContain("serverless-lumigo: setting [hello]'s handler to [_lumigo/hello.world]...");
+				expect(logs).toContain(
+					"serverless-lumigo: setting [hello]'s handler to [_lumigo/hello.world]..."
+				);
 			});
 		});
 	});
