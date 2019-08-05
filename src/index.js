@@ -44,9 +44,7 @@ class LumigoPlugin {
 			for (const func of functions) {
 				const handler = await this.createWrappedNodejsFunction(func, token);
 				// replace the function handler to the wrapped function
-				this.verboseLog(
-					`setting [${func.localName}]'s handler to ${handler}...`
-				);
+				this.verboseLog(`setting [${func.localName}]'s handler to ${handler}...`);
 				this.serverless.service.functions[func.localName].handler = handler;
 			}
 		} else if (runtime === "python") {
@@ -55,9 +53,7 @@ class LumigoPlugin {
 			for (const func of functions) {
 				const handler = await this.createWrappedPythonFunction(func, token);
 				// replace the function handler to the wrapped function
-				this.verboseLog(
-					`setting [${func.localName}]'s handler to ${handler}...`
-				);
+				this.verboseLog(`setting [${func.localName}]'s handler to ${handler}...`);
 				this.serverless.service.functions[func.localName].handler = handler;
 			}
 		}

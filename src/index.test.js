@@ -452,7 +452,7 @@ function assertNodejsFunctionsAreWrapped() {
 			`token: '${token}'`
 		)
 	);
-  
+
 	const functions = serverless.service.functions;
 	expect(functions.hello.handler).toBe("_lumigo/hello.world");
 	expect(functions["hello.world"].handler).toBe("_lumigo/hello.world.handler");
@@ -512,7 +512,7 @@ function assertPythonFunctionsAreWrapped() {
 			`@lumigo_tracer(token='${token}')`
 		)
 	);
-  
+
 	const functions = serverless.service.functions;
 	expect(functions.hello.handler).toBe("_lumigo/hello.world");
 	expect(functions["hello.world"].handler).toBe("_lumigo/hello.world.handler");
