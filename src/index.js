@@ -40,7 +40,7 @@ class LumigoPlugin {
 		const edgeHost = _.get(this.serverless.service, "custom.lumigo.edgeHost");
 		if (token === undefined) {
 			throw new this.serverless.classes.Error(
-				"serverless-lumigo: Unable to find token. Please follow https://github.com/lumigo-io/lumigo-node"
+				"serverless-lumigo: Unable to find token. Please follow https://github.com/lumigo-io/serverless-lumigo"
 			);
 		}
 

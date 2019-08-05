@@ -60,8 +60,7 @@ beforeEach(() => {
 	};
 	serverless.service.custom = {
 		lumigo: {
-			token: token,
-			edgeHost: edgeHost
+			token: token
 		}
 	};
 	serverless.config.servicePath = __dirname;
@@ -91,6 +90,25 @@ describe("Lumigo plugin (node.js)", () => {
 	describe("nodejs8.10", () => {
 		beforeEach(() => {
 			serverless.service.provider.runtime = "nodejs8.10";
+		});
+
+		test("edgeHost configuration present, should appear in the wrapped code", async () => {
+			serverless.service.custom.lumigo["edgeHost"] = edgeHost;
+			await lumigo.afterPackageInitialize();
+
+			expect(fs.outputFile).toBeCalledWith(
+				__dirname + "/_lumigo/hello.js",
+				expect.toContainAllStrings(`edgeHost: '${edgeHost}'`)
+			);
+		});
+
+		test("edgeHost configuration not present, should not appear in the wrapped code", async () => {
+			await lumigo.afterPackageInitialize();
+
+			expect(fs.outputFile).toBeCalledWith(
+				__dirname + "/_lumigo/hello.js",
+				expect.not.toContainAllStrings(`edgeHost: '${edgeHost}'`)
+			);
 		});
 
 		test("it should wrap all functions after package initialize", async () => {
@@ -428,8 +446,7 @@ function assertNodejsFunctionsAreWrapped() {
 		expect.toContainAllStrings(
 			'const tracer = require("@lumigo/node-tracer")',
 			"const handler = require('../hello').world",
-			`token: '${token}'`,
-			`edgeHost: '${edgeHost}'`
+			`token: '${token}'`
 		)
 	);
 	expect(fs.outputFile).toBeCalledWith(
