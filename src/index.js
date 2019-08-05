@@ -103,25 +103,25 @@ class LumigoPlugin {
 		try {
 			const packageJson = require(packageJsonPath);
 			const dependencies = _.get(packageJson, "dependencies", {});
-			return _.has(dependencies, "@lumigo/tracer");
+			return _.has(dependencies, "@lumigo/node-tracer");
 		} catch (err) {
 			this.verboseLog(
-				"error when trying to check if @lumigo/tracer is already installed..."
+				"error when trying to check if @lumigo/node-tracer is already installed..."
 			);
 			this.verboseLog(err.message);
-			this.verboseLog("assume @lumigo/tracer has not been installed...");
+			this.verboseLog("assume @lumigo/node-tracer has not been installed...");
 			return false;
 		}
 	}
 
 	async installLumigoNodejs() {
 		if (this.isNodeTracerInstalled) {
-			this.verboseLog("@lumigo/tracer is already installed, skipped...");
+			this.verboseLog("@lumigo/node-tracer is already installed, skipped...");
 			return;
 		}
 
-		this.log("installing @lumigo/tracer...");
-		await childProcess.execAsync("npm install @lumigo/tracer");
+		this.log("installing @lumigo/node-tracer...");
+		await childProcess.execAsync("npm install @lumigo/node-tracer");
 	}
 
 	async uninstallLumigoNodejs() {
@@ -129,8 +129,8 @@ class LumigoPlugin {
 			return;
 		}
 
-		this.log("uninstalling @lumigo/tracer...");
-		await childProcess.execAsync("npm uninstall @lumigo/tracer");
+		this.log("uninstalling @lumigo/node-tracer...");
+		await childProcess.execAsync("npm uninstall @lumigo/node-tracer");
 	}
 
 	async ensureLumigoPythonIsInstalled() {

@@ -399,7 +399,7 @@ describe("is not nodejs or python", () => {
 
 function assertNodejsFunctionsAreWrapped() {
 	expect(childProcess.exec).toBeCalledWith(
-		"npm install @lumigo/tracer",
+		"npm install @lumigo/node-tracer",
 		expect.anything()
 	);
 
@@ -514,7 +514,7 @@ function assertFunctionsAreNotWrapped() {
 function assertNodejsFunctionsAreCleanedUp() {
 	expect(fs.remove).toBeCalledWith(__dirname + "/_lumigo");
 	expect(childProcess.exec).toBeCalledWith(
-		"npm uninstall @lumigo/tracer",
+		"npm uninstall @lumigo/node-tracer",
 		expect.anything()
 	);
 }
