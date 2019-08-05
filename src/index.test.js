@@ -452,6 +452,14 @@ function assertNodejsFunctionsAreWrapped() {
 			`token: '${token}'`
 		)
 	);
+  
+	const functions = serverless.service.functions;
+	expect(functions.hello.handler).toBe("_lumigo/hello.world");
+	expect(functions["hello.world"].handler).toBe("_lumigo/hello.world.handler");
+	expect(functions.foo.handler).toBe("_lumigo/foo.handler");
+	expect(functions.bar.handler).toBe("_lumigo/bar.handler");
+	expect(functions.jet.handler).toBe("_lumigo/jet.handler");
+	expect(functions.pack.handler).toBe("_lumigo/pack.handler");
 }
 
 function assertPythonFunctionsAreWrapped() {
@@ -504,6 +512,14 @@ function assertPythonFunctionsAreWrapped() {
 			`@lumigo_tracer(token='${token}')`
 		)
 	);
+  
+	const functions = serverless.service.functions;
+	expect(functions.hello.handler).toBe("_lumigo/hello.world");
+	expect(functions["hello.world"].handler).toBe("_lumigo/hello.world.handler");
+	expect(functions.foo.handler).toBe("_lumigo/foo.handler");
+	expect(functions.bar.handler).toBe("_lumigo/bar.handler");
+	expect(functions.jet.handler).toBe("_lumigo/jet.handler");
+	expect(functions.pack.handler).toBe("_lumigo/pack.handler");
 }
 
 function assertFunctionsAreNotWrapped() {
