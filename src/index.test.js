@@ -7,6 +7,7 @@ jest.mock("fs-extra");
 jest.mock("child_process");
 
 const token = "test-token";
+const edgeHost = "edge-host";
 
 afterEach(() => jest.clearAllMocks());
 
@@ -72,10 +73,46 @@ beforeEach(() => {
 	delete process.env.SLS_DEBUG;
 });
 
+describe("Invalid plugin configuration", () => {
+	beforeEach(() => {
+		serverless.service.provider.runtime = "nodejs8.10";
+	});
+
+	test("Token is not present, exception is thrown", async () => {
+		delete serverless.service.custom.lumigo["token"];
+		// https://github.com/facebook/jest/issues/1700
+		let error;
+		try {
+			await lumigo.afterPackageInitialize();
+		} catch (e) {
+			error = e;
+		}
+		expect(error).toBeTruthy();
+	});
+});
 describe("Lumigo plugin (node.js)", () => {
 	describe("nodejs8.10", () => {
 		beforeEach(() => {
 			serverless.service.provider.runtime = "nodejs8.10";
+		});
+
+		test("edgeHost configuration present, should appear in the wrapped code", async () => {
+			serverless.service.custom.lumigo["edgeHost"] = edgeHost;
+			await lumigo.afterPackageInitialize();
+
+			expect(fs.outputFile).toBeCalledWith(
+				__dirname + "/_lumigo/hello.js",
+				expect.toContainAllStrings(`edgeHost: '${edgeHost}'`)
+			);
+		});
+
+		test("edgeHost configuration not present, should not appear in the wrapped code", async () => {
+			await lumigo.afterPackageInitialize();
+
+			expect(fs.outputFile).toBeCalledWith(
+				__dirname + "/_lumigo/hello.js",
+				expect.not.toContainAllStrings(`edgeHost: '${edgeHost}'`)
+			);
 		});
 
 		test("it should wrap all functions after package initialize", async () => {
@@ -454,7 +491,7 @@ describe("is not nodejs or python", () => {
 
 function assertNodejsFunctionsAreWrapped() {
 	expect(childProcess.exec).toBeCalledWith(
-		"npm install @lumigo/node-tracer",
+		"npm install @lumigo/tracer",
 		expect.anything()
 	);
 
@@ -462,7 +499,7 @@ function assertNodejsFunctionsAreWrapped() {
 	expect(fs.outputFile).toBeCalledWith(
 		__dirname + "/_lumigo/hello.js",
 		expect.toContainAllStrings(
-			'const tracer = require("@lumigo/node-tracer")',
+			'const tracer = require("@lumigo/tracer")',
 			"const handler = require('../hello').world",
 			`token: '${token}'`
 		)
@@ -470,7 +507,7 @@ function assertNodejsFunctionsAreWrapped() {
 	expect(fs.outputFile).toBeCalledWith(
 		__dirname + "/_lumigo/hello.world.js",
 		expect.toContainAllStrings(
-			'const tracer = require("@lumigo/node-tracer")',
+			'const tracer = require("@lumigo/tracer")',
 			"const handler = require('../hello.world').handler",
 			`token: '${token}'`
 		)
@@ -478,7 +515,7 @@ function assertNodejsFunctionsAreWrapped() {
 	expect(fs.outputFile).toBeCalledWith(
 		__dirname + "/_lumigo/foo.js",
 		expect.toContainAllStrings(
-			'const tracer = require("@lumigo/node-tracer")',
+			'const tracer = require("@lumigo/tracer")',
 			"const handler = require('../foo_bar').handler",
 			`token: '${token}'`
 		)
@@ -486,7 +523,7 @@ function assertNodejsFunctionsAreWrapped() {
 	expect(fs.outputFile).toBeCalledWith(
 		__dirname + "/_lumigo/bar.js",
 		expect.toContainAllStrings(
-			'const tracer = require("@lumigo/node-tracer")',
+			'const tracer = require("@lumigo/tracer")',
 			"const handler = require('../foo_bar').handler",
 			`token: '${token}'`
 		)
@@ -494,7 +531,7 @@ function assertNodejsFunctionsAreWrapped() {
 	expect(fs.outputFile).toBeCalledWith(
 		__dirname + "/_lumigo/jet.js",
 		expect.toContainAllStrings(
-			'const tracer = require("@lumigo/node-tracer")',
+			'const tracer = require("@lumigo/tracer")',
 			"const handler = require('../foo/foo/bar').handler",
 			`token: '${token}'`
 		)
@@ -502,7 +539,7 @@ function assertNodejsFunctionsAreWrapped() {
 	expect(fs.outputFile).toBeCalledWith(
 		__dirname + "/_lumigo/pack.js",
 		expect.toContainAllStrings(
-			'const tracer = require("@lumigo/node-tracer")',
+			'const tracer = require("@lumigo/tracer")',
 			"const handler = require('../foo.bar/zoo').handler",
 			`token: '${token}'`
 		)
@@ -585,7 +622,7 @@ function assertFunctionsAreNotWrapped() {
 function assertNodejsFunctionsAreCleanedUp() {
 	expect(fs.remove).toBeCalledWith(__dirname + "/_lumigo");
 	expect(childProcess.exec).toBeCalledWith(
-		"npm uninstall @lumigo/node-tracer",
+		"npm uninstall @lumigo/tracer",
 		expect.anything()
 	);
 }

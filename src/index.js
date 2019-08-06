@@ -37,12 +37,22 @@ class LumigoPlugin {
 		}
 
 		const token = _.get(this.serverless.service, "custom.lumigo.token");
+		const edgeHost = _.get(this.serverless.service, "custom.lumigo.edgeHost");
+		if (token === undefined) {
+			throw new this.serverless.classes.Error(
+				"serverless-lumigo: Unable to find token. Please follow https://github.com/lumigo-io/serverless-lumigo"
+			);
+		}
 
 		if (runtime === "nodejs") {
 			await this.installLumigoNodejs();
 
 			for (const func of functions) {
-				const handler = await this.createWrappedNodejsFunction(func, token);
+				const handler = await this.createWrappedNodejsFunction(
+					func,
+					token,
+					edgeHost
+				);
 				// replace the function handler to the wrapped function
 				this.verboseLog(
 					`setting [${func.localName}]'s handler to [${handler}]...`
@@ -53,7 +63,11 @@ class LumigoPlugin {
 			await this.ensureLumigoPythonIsInstalled();
 
 			for (const func of functions) {
-				const handler = await this.createWrappedPythonFunction(func, token);
+				const handler = await this.createWrappedPythonFunction(
+					func,
+					token,
+					edgeHost
+				);
 				// replace the function handler to the wrapped function
 				this.verboseLog(
 					`setting [${func.localName}]'s handler to [${handler}]...`
@@ -109,25 +123,25 @@ class LumigoPlugin {
 		try {
 			const packageJson = require(packageJsonPath);
 			const dependencies = _.get(packageJson, "dependencies", {});
-			return _.has(dependencies, "@lumigo/node-tracer");
+			return _.has(dependencies, "@lumigo/tracer");
 		} catch (err) {
 			this.verboseLog(
-				"error when trying to check if @lumigo/node-tracer is already installed..."
+				"error when trying to check if @lumigo/tracer is already installed..."
 			);
 			this.verboseLog(err.message);
-			this.verboseLog("assume @lumigo/node-tracer has not been installed...");
+			this.verboseLog("assume @lumigo/tracer has not been installed...");
 			return false;
 		}
 	}
 
 	async installLumigoNodejs() {
 		if (this.isNodeTracerInstalled) {
-			this.verboseLog("@lumigo/node-tracer is already installed, skipped...");
+			this.verboseLog("@lumigo/tracer is already installed, skipped...");
 			return;
 		}
 
-		this.log("installing @lumigo/node-tracer...");
-		await childProcess.execAsync("npm install @lumigo/node-tracer");
+		this.log("installing @lumigo/tracer...");
+		await childProcess.execAsync("npm install @lumigo/tracer");
 	}
 
 	async uninstallLumigoNodejs() {
@@ -135,8 +149,9 @@ class LumigoPlugin {
 			return;
 		}
 
-		this.log("uninstalling @lumigo/node-tracer...");
-		await childProcess.execAsync("npm uninstall @lumigo/node-tracer");
+		this.log("uninstalling @lumigo/tracer...");
+
+		await childProcess.execAsync("npm uninstall @lumigo/tracer");
 	}
 
 	async ensureLumigoPythonIsInstalled() {
@@ -201,7 +216,17 @@ Consider using the serverless-python-requirements plugin to help you package Pyt
 		}
 	}
 
-	async createWrappedNodejsFunction(func, token) {
+	getNodeTracerParameters(token, edgeHost) {
+		if (token === undefined) {
+			throw new this.serverless.classes.Error("Lumigo's tracer token is undefined");
+		}
+		let configuration = [`token: '${token}'`];
+		if (edgeHost) {
+			configuration.push(`edgeHost: '${edgeHost}'`);
+		}
+		return configuration.join(",");
+	}
+	async createWrappedNodejsFunction(func, token, edgeHost) {
 		this.verboseLog(`wrapping [${func.handler}]...`);
 
 		const localName = func.localName;
@@ -213,10 +238,9 @@ Consider using the serverless-python-requirements plugin to help you package Pyt
 		const handlerModulePath = func.handler.substr(0, func.handler.lastIndexOf("."));
 		// e.g. functions/hello.world.handler -> handler
 		const handlerFuncName = handler.substr(handler.lastIndexOf(".") + 1);
-
 		const wrappedFunction = `
-const tracer = require("@lumigo/node-tracer")({
-	token: '${token}'
+const tracer = require("@lumigo/tracer")({
+	${this.getNodeTracerParameters(token, edgeHost)}
 });
 const handler = require('../${handlerModulePath}').${handlerFuncName};
 
