@@ -25,13 +25,15 @@ expect.extend({
 let serverless;
 let lumigo;
 
+const log = jest.fn();
+
 beforeEach(() => {
 	serverless = new Serverless();
 	serverless.servicePath = true;
 	serverless.service.service = "lumigo-test";
 	serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
 	serverless.setProvider("aws", new AwsProvider(serverless));
-	serverless.cli = { log: jest.fn() };
+	serverless.cli = { log: log };
 	serverless.service.functions = {
 		hello: {
 			handler: "hello.world",
@@ -67,6 +69,8 @@ beforeEach(() => {
 	childProcess.exec.mockImplementation((cmd, cb) => cb());
 	const LumigoPlugin = require("./index");
 	lumigo = new LumigoPlugin(serverless, {});
+
+	delete process.env.SLS_DEBUG;
 });
 
 describe("Invalid plugin configuration", () => {
@@ -160,6 +164,21 @@ describe("Lumigo plugin (node.js)", () => {
 				assertLumigoIsIncluded();
 			});
 		});
+
+		describe("if verbose logging is enabled", () => {
+			beforeEach(() => {
+				process.env.SLS_DEBUG = "*";
+			});
+
+			test("it should publish debug messages", async () => {
+				await lumigo.afterPackageInitialize();
+
+				const logs = log.mock.calls.map(x => x[0]);
+				expect(logs).toContain(
+					"serverless-lumigo: setting [hello]'s handler to [_lumigo/hello.world]..."
+				);
+			});
+		});
 	});
 
 	describe("nodejs10.x", () => {
@@ -214,6 +233,21 @@ describe("Lumigo plugin (node.js)", () => {
 
 				await lumigo.afterPackageInitialize();
 				assertLumigoIsIncluded();
+			});
+		});
+
+		describe("if verbose logging is enabled", () => {
+			beforeEach(() => {
+				process.env.SLS_DEBUG = "*";
+			});
+
+			test("it should publish debug messages", async () => {
+				await lumigo.afterPackageInitialize();
+
+				const logs = log.mock.calls.map(x => x[0]);
+				expect(logs).toContain(
+					"serverless-lumigo: setting [hello]'s handler to [_lumigo/hello.world]..."
+				);
 			});
 		});
 	});
@@ -415,6 +449,27 @@ lumigo_tracer`);
 				assertLumigoIsIncluded();
 			});
 		});
+
+		describe("if verbose logging is enabled", () => {
+			beforeEach(() => {
+				process.env.SLS_DEBUG = "*";
+			});
+
+			test("it should publish debug messages", async () => {
+				fs.pathExistsSync.mockReturnValue(true);
+				fs.readFile.mockReturnValue(`
+  --index-url https://1wmWND-GD5RPAwKgsdvb6DphXCj0vPLs@pypi.fury.io/lumigo/
+  --extra-index-url https://pypi.org/simple/
+  lumigo_tracer`);
+
+				await lumigo.afterPackageInitialize();
+
+				const logs = log.mock.calls.map(x => x[0]);
+				expect(logs).toContain(
+					"serverless-lumigo: setting [hello]'s handler to [_lumigo/hello.world]..."
+				);
+			});
+		});
 	});
 });
 
@@ -436,7 +491,7 @@ describe("is not nodejs or python", () => {
 
 function assertNodejsFunctionsAreWrapped() {
 	expect(childProcess.exec).toBeCalledWith(
-		"npm install @lumigo/tracer",
+		"npm install @lumigo/node-tracer",
 		expect.anything()
 	);
 
@@ -489,6 +544,14 @@ function assertNodejsFunctionsAreWrapped() {
 			`token: '${token}'`
 		)
 	);
+
+	const functions = serverless.service.functions;
+	expect(functions.hello.handler).toBe("_lumigo/hello.world");
+	expect(functions["hello.world"].handler).toBe("_lumigo/hello.world.handler");
+	expect(functions.foo.handler).toBe("_lumigo/foo.handler");
+	expect(functions.bar.handler).toBe("_lumigo/bar.handler");
+	expect(functions.jet.handler).toBe("_lumigo/jet.handler");
+	expect(functions.pack.handler).toBe("_lumigo/pack.handler");
 }
 
 function assertPythonFunctionsAreWrapped() {
@@ -541,6 +604,14 @@ function assertPythonFunctionsAreWrapped() {
 			`@lumigo_tracer(token='${token}')`
 		)
 	);
+
+	const functions = serverless.service.functions;
+	expect(functions.hello.handler).toBe("_lumigo/hello.world");
+	expect(functions["hello.world"].handler).toBe("_lumigo/hello.world.handler");
+	expect(functions.foo.handler).toBe("_lumigo/foo.handler");
+	expect(functions.bar.handler).toBe("_lumigo/bar.handler");
+	expect(functions.jet.handler).toBe("_lumigo/jet.handler");
+	expect(functions.pack.handler).toBe("_lumigo/pack.handler");
 }
 
 function assertFunctionsAreNotWrapped() {
@@ -551,7 +622,7 @@ function assertFunctionsAreNotWrapped() {
 function assertNodejsFunctionsAreCleanedUp() {
 	expect(fs.remove).toBeCalledWith(__dirname + "/_lumigo");
 	expect(childProcess.exec).toBeCalledWith(
-		"npm uninstall @lumigo/tracer",
+		"npm uninstall @lumigo/node-tracer",
 		expect.anything()
 	);
 }
