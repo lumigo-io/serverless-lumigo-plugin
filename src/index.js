@@ -141,7 +141,7 @@ class LumigoPlugin {
 		}
 
 		this.log("installing @lumigo/tracer...");
-		await childProcess.execAsync("npm install @lumigo/tracer");
+		await childProcess.execAsync("npm install @lumigo/tracer@latest");
 	}
 
 	async uninstallLumigoNodejs() {
