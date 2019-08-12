@@ -491,7 +491,7 @@ describe("is not nodejs or python", () => {
 
 function assertNodejsFunctionsAreWrapped() {
 	expect(childProcess.exec).toBeCalledWith(
-		"npm install @lumigo/tracer",
+		"npm install @lumigo/tracer@latest",
 		expect.anything()
 	);
 
