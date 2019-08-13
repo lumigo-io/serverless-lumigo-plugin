@@ -141,7 +141,9 @@ class LumigoPlugin {
 		}
 
 		this.log("installing @lumigo/tracer...");
-		const installDetails = await childProcess.execAsync("npm install --no-save @lumigo/tracer@latest");
+		const installDetails = await childProcess.execAsync(
+			"npm install --no-save @lumigo/tracer@latest"
+		);
 		this.verboseLog(installDetails);
 	}
 
