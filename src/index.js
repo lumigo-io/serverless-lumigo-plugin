@@ -285,7 +285,7 @@ from ${handlerModulePath} import ${handlerFuncName} as userHandler
 
 @lumigo_tracer(token='${token}')
 def ${handlerFuncName}(event, context):
-  userHandler(event, context)
+  return userHandler(event, context)
     `;
 
 		const fileName = localName + ".py";
