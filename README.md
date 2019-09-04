@@ -11,6 +11,7 @@ Serverless framework plugin to auto-install the Lumigo tracer for Node.js and Py
 
 - [Install](#install)
 - [Node.js functions](#nodejs-functions)
+- [Python functions](#python-functions)
 
 ## Install
 
@@ -41,3 +42,23 @@ custom:
     token: <YOUR TOKEN GOES HERE>
 ```
 
+## Python functions
+
+For Python functions, we recommend using the [serverless-python-requirements](https://www.npmjs.com/package/serverless-python-requirements) plugin to help you manage your dependencies. You should have the following in your `requirements.txt`:
+
+```
+lumigo_tracer
+```
+
+This installs the Lumigo tracer for Python, and this plugin would wrap your functions during `serverless package` and `serverless deploy`.
+
+You also need to configure the Lumigo token in a `custom` section in the `serverless.yml`.
+
+```yml
+provider:
+  name: aws
+  runtime: python3.7
+custom:
+  lumigo:
+    token: <YOUR TOKEN GOES HERE>
+```
