@@ -155,7 +155,7 @@ class LumigoPlugin {
 			this.verboseLog("Yarn is installed");
 			return NodePackageManagers.Yarn;
 		} catch (err) {
-			this.verboseLog("NPM is not found");
+			this.verboseLog("Yarn is not found");
 		}
 
 		return NodePackageManagers.None;
