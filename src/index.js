@@ -4,6 +4,12 @@ const BbPromise = require("bluebird");
 const childProcess = BbPromise.promisifyAll(require("child_process"));
 const path = require("path");
 
+const NodePackageManagers = {
+	NPM: "NPM",
+	Yarn: "Yarn",
+	None: "None"
+};
+
 class LumigoPlugin {
 	constructor(serverless, options) {
 		this.serverless = serverless;
@@ -15,7 +21,6 @@ class LumigoPlugin {
 			}
 		};
 		this.folderPath = path.join(this.serverless.config.servicePath, "_lumigo");
-		this.isNodeTracerInstalled = this.isLumigoNodejsInstalled();
 
 		this.hooks = {
 			"after:package:initialize": this.afterPackageInitialize.bind(this),
@@ -23,6 +28,26 @@ class LumigoPlugin {
 				this
 			)
 		};
+	}
+  
+	get isNodeTracerInstalled() {
+		if (this._isNodeTracerInstalled !== undefined) {
+			return this._isNodeTracerInstalled;
+		} else {
+			this._isNodeTracerInstalled = this.isLumigoNodejsInstalled();
+		}
+    
+		return this._isNodeTracerInstalled;
+	}
+  
+	get nodePackageManager() {
+		if (this._nodePackageManager !== undefined) {
+			return this._nodePackageManager;
+		} else {
+			this._nodePackageManager = this.discoverNodePackageManager();
+		}
+
+		return this._nodePackageManager;
 	}
 
 	async afterPackageInitialize() {
@@ -113,6 +138,28 @@ class LumigoPlugin {
 			return { runtime: "unsupported", functions: [] };
 		}
 	}
+  
+	discoverNodePackageManager() {
+		try {
+			this.verboseLog("checking if NPM is installed...");
+			childProcess.execSync("npm --version");
+			this.verboseLog("NPM is installed");
+			return NodePackageManagers.NPM;
+		} catch (err) {
+			this.verboseLog("NPM is not found");
+		}
+    
+		try {
+			this.verboseLog("checking if Yarn is installed...");
+			childProcess.execSync("yarn --version");
+			this.verboseLog("Yarn is installed");
+			return NodePackageManagers.Yarn;
+		} catch (err) {
+			this.verboseLog("NPM is not found");
+		}
+    
+		return NodePackageManagers.None;
+	}
 
 	isLumigoNodejsInstalled() {
 		const packageJsonPath = path.join(
@@ -141,9 +188,17 @@ class LumigoPlugin {
 		}
 
 		this.log("installing @lumigo/tracer...");
-		const installDetails = await childProcess.execAsync(
-			"npm install --no-save @lumigo/tracer@latest"
-		);
+		let installCommand;
+		if (this.nodePackageManager === NodePackageManagers.NPM) {
+			installCommand = "npm install --no-save @lumigo/tracer@latest";
+		} else if (this.nodePackageManager === NodePackageManagers.Yarn) {
+			installCommand = "yarn add @lumigo/tracer@latest";
+		} else {
+			throw new this.serverless.classes.Error(
+				"No Node.js package manager found. Please install either NPM or Yarn.");
+		}
+
+		const installDetails = childProcess.execSync(installCommand, "utf8");
 		this.verboseLog(installDetails);
 	}
 
@@ -153,8 +208,18 @@ class LumigoPlugin {
 		}
 
 		this.log("uninstalling @lumigo/tracer...");
+		let uninstallCommand;
+		if (this.nodePackageManager === NodePackageManagers.NPM) {
+			uninstallCommand = "npm uninstall @lumigo/tracer";
+		} else if (this.nodePackageManager === NodePackageManagers.Yarn) {
+			uninstallCommand = "yarn remove @lumigo/tracer";
+		} else {
+			throw new this.serverless.classes.Error(
+				"No Node.js package manager found. Please install either NPM or Yarn.");
+		}
 
-		await childProcess.execAsync("npm uninstall @lumigo/tracer");
+		const uninstallDetails = childProcess.execSync(uninstallCommand, "utf8");
+		this.verboseLog(uninstallDetails);
 	}
 
 	async ensureLumigoPythonIsInstalled() {
@@ -229,6 +294,7 @@ Consider using the serverless-python-requirements plugin to help you package Pyt
 		}
 		return configuration.join(",");
 	}
+  
 	async createWrappedNodejsFunction(func, token, edgeHost) {
 		this.verboseLog(`wrapping [${func.handler}]...`);
 
@@ -305,6 +371,6 @@ def ${handlerFuncName}(event, context):
 		this.verboseLog(`removing the temporary folder [${this.folderPath}]...`);
 		return fs.remove(this.folderPath);
 	}
-}
+};
 
 module.exports = LumigoPlugin;
