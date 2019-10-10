@@ -29,17 +29,17 @@ class LumigoPlugin {
 			)
 		};
 	}
-  
+
 	get isNodeTracerInstalled() {
 		if (this._isNodeTracerInstalled !== undefined) {
 			return this._isNodeTracerInstalled;
 		} else {
 			this._isNodeTracerInstalled = this.isLumigoNodejsInstalled();
 		}
-    
+
 		return this._isNodeTracerInstalled;
 	}
-  
+
 	get nodePackageManager() {
 		if (this._nodePackageManager !== undefined) {
 			return this._nodePackageManager;
@@ -138,7 +138,7 @@ class LumigoPlugin {
 			return { runtime: "unsupported", functions: [] };
 		}
 	}
-  
+
 	discoverNodePackageManager() {
 		try {
 			this.verboseLog("checking if NPM is installed...");
@@ -148,7 +148,7 @@ class LumigoPlugin {
 		} catch (err) {
 			this.verboseLog("NPM is not found");
 		}
-    
+
 		try {
 			this.verboseLog("checking if Yarn is installed...");
 			childProcess.execSync("yarn --version");
@@ -157,7 +157,7 @@ class LumigoPlugin {
 		} catch (err) {
 			this.verboseLog("NPM is not found");
 		}
-    
+
 		return NodePackageManagers.None;
 	}
 
@@ -195,7 +195,8 @@ class LumigoPlugin {
 			installCommand = "yarn add @lumigo/tracer@latest";
 		} else {
 			throw new this.serverless.classes.Error(
-				"No Node.js package manager found. Please install either NPM or Yarn.");
+				"No Node.js package manager found. Please install either NPM or Yarn."
+			);
 		}
 
 		const installDetails = childProcess.execSync(installCommand, "utf8");
@@ -215,7 +216,8 @@ class LumigoPlugin {
 			uninstallCommand = "yarn remove @lumigo/tracer";
 		} else {
 			throw new this.serverless.classes.Error(
-				"No Node.js package manager found. Please install either NPM or Yarn.");
+				"No Node.js package manager found. Please install either NPM or Yarn."
+			);
 		}
 
 		const uninstallDetails = childProcess.execSync(uninstallCommand, "utf8");
@@ -294,7 +296,7 @@ Consider using the serverless-python-requirements plugin to help you package Pyt
 		}
 		return configuration.join(",");
 	}
-  
+
 	async createWrappedNodejsFunction(func, token, edgeHost) {
 		this.verboseLog(`wrapping [${func.handler}]...`);
 
@@ -371,6 +373,6 @@ def ${handlerFuncName}(event, context):
 		this.verboseLog(`removing the temporary folder [${this.folderPath}]...`);
 		return fs.remove(this.folderPath);
 	}
-};
+}
 
 module.exports = LumigoPlugin;

@@ -179,7 +179,7 @@ describe("Lumigo plugin (node.js)", () => {
 					"serverless-lumigo: setting [hello]'s handler to [_lumigo/hello.world]..."
 				);
 			});
-		});    
+		});
 	});
 
 	describe("nodejs10.x", () => {
@@ -251,10 +251,10 @@ describe("Lumigo plugin (node.js)", () => {
 				);
 			});
 		});
-    
+
 		describe("when NPM is not available", () => {
 			beforeEach(() => {
-				childProcess.execSync.mockImplementation((cmd) => {
+				childProcess.execSync.mockImplementation(cmd => {
 					if (cmd === "npm --version") {
 						throw new Error("npm: command not found");
 					} else {
@@ -281,10 +281,10 @@ describe("Lumigo plugin (node.js)", () => {
 				);
 			});
 		});
-    
+
 		describe("when NPM and Yarn are both not available", () => {
 			beforeEach(() => {
-				childProcess.execSync.mockImplementation((cmd) => {
+				childProcess.execSync.mockImplementation(cmd => {
 					if (cmd === "npm --version") {
 						throw new Error("npm: command not found");
 					} else if (cmd === "yarn --version") {
@@ -296,13 +296,15 @@ describe("Lumigo plugin (node.js)", () => {
 			});
 
 			test("it should error on install", async () => {
-				await expect(lumigo.afterPackageInitialize()).rejects
-					.toThrow("No Node.js package manager found. Please install either NPM or Yarn.");
+				await expect(lumigo.afterPackageInitialize()).rejects.toThrow(
+					"No Node.js package manager found. Please install either NPM or Yarn."
+				);
 			});
 
 			test("it should error on uninstall", async () => {
-				await expect(lumigo.afterCreateDeploymentArtifacts()).rejects
-					.toThrow("No Node.js package manager found. Please install either NPM or Yarn.");
+				await expect(lumigo.afterCreateDeploymentArtifacts()).rejects.toThrow(
+					"No Node.js package manager found. Please install either NPM or Yarn."
+				);
 			});
 		});
 	});
@@ -354,7 +356,7 @@ describe("Lumigo plugin (python)", () => {
 --extra-index-url https://pypi.org/simple/
 lumigo_tracer`);
 			});
-      
+
 			test("it should wrap all functions after package initialize", async () => {
 				await lumigo.afterPackageInitialize();
 				assertPythonFunctionsAreWrapped();
@@ -426,7 +428,7 @@ lumigo_tracer`);
 						events: []
 					}
 				};
-        
+
 				fs.pathExistsSync.mockReturnValue(true);
 				fs.readFile.mockReturnValue(`
   --index-url https://1wmWND-GD5RPAwKgsdvb6DphXCj0vPLs@pypi.fury.io/lumigo/
@@ -674,10 +676,7 @@ function assertFunctionsAreNotWrapped() {
 
 function assertNodejsFunctionsAreCleanedUp() {
 	expect(fs.remove).toBeCalledWith(__dirname + "/_lumigo");
-	expect(childProcess.execSync).toBeCalledWith(
-		"npm uninstall @lumigo/tracer",
-		"utf8"
-	);
+	expect(childProcess.execSync).toBeCalledWith("npm uninstall @lumigo/tracer", "utf8");
 }
 
 function assertPythonFunctionsAreCleanedUp() {
