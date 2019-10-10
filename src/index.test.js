@@ -9,8 +9,6 @@ jest.mock("child_process");
 const token = "test-token";
 const edgeHost = "edge-host";
 
-afterEach(() => jest.clearAllMocks());
-
 expect.extend({
 	toContainAllStrings(received, ...strings) {
 		const pass = strings.every(s => received.includes(s));
@@ -66,12 +64,14 @@ beforeEach(() => {
 		}
 	};
 	serverless.config.servicePath = __dirname;
-	childProcess.exec.mockImplementation((cmd, cb) => cb());
+	childProcess.execSync.mockImplementation(() => "");
 	const LumigoPlugin = require("./index");
 	lumigo = new LumigoPlugin(serverless, {});
 
 	delete process.env.SLS_DEBUG;
 });
+
+afterEach(() => jest.resetAllMocks());
 
 describe("Invalid plugin configuration", () => {
 	beforeEach(() => {
@@ -90,6 +90,7 @@ describe("Invalid plugin configuration", () => {
 		expect(error).toBeTruthy();
 	});
 });
+
 describe("Lumigo plugin (node.js)", () => {
 	describe("nodejs8.10", () => {
 		beforeEach(() => {
@@ -250,6 +251,62 @@ describe("Lumigo plugin (node.js)", () => {
 				);
 			});
 		});
+
+		describe("when NPM is not available", () => {
+			beforeEach(() => {
+				childProcess.execSync.mockImplementation(cmd => {
+					if (cmd === "npm --version") {
+						throw new Error("npm: command not found");
+					} else {
+						return "";
+					}
+				});
+			});
+
+			test("it should install with Yarn", async () => {
+				await lumigo.afterPackageInitialize();
+
+				expect(childProcess.execSync).toBeCalledWith(
+					"yarn add @lumigo/tracer@latest",
+					"utf8"
+				);
+			});
+
+			test("it should uninstall with Yarn", async () => {
+				await lumigo.afterCreateDeploymentArtifacts();
+
+				expect(childProcess.execSync).toBeCalledWith(
+					"yarn remove @lumigo/tracer",
+					"utf8"
+				);
+			});
+		});
+
+		describe("when NPM and Yarn are both not available", () => {
+			beforeEach(() => {
+				childProcess.execSync.mockImplementation(cmd => {
+					if (cmd === "npm --version") {
+						throw new Error("npm: command not found");
+					} else if (cmd === "yarn --version") {
+						throw new Error("yarn: command not found");
+					} else {
+						return "";
+					}
+				});
+			});
+
+			test("it should error on install", async () => {
+				await expect(lumigo.afterPackageInitialize()).rejects.toThrow(
+					"No Node.js package manager found. Please install either NPM or Yarn."
+				);
+			});
+
+			test("it should error on uninstall", async () => {
+				await expect(lumigo.afterCreateDeploymentArtifacts()).rejects.toThrow(
+					"No Node.js package manager found. Please install either NPM or Yarn."
+				);
+			});
+		});
 	});
 });
 
@@ -291,15 +348,19 @@ describe("Lumigo plugin (python)", () => {
 			});
 		});
 
-		test("it should wrap all functions after package initialize", async () => {
-			fs.pathExistsSync.mockReturnValue(true);
-			fs.readFile.mockReturnValue(`
+		describe("given the requirement.txt file exists", () => {
+			beforeEach(() => {
+				fs.pathExistsSync.mockReturnValue(true);
+				fs.readFile.mockReturnValue(`
 --index-url https://1wmWND-GD5RPAwKgsdvb6DphXCj0vPLs@pypi.fury.io/lumigo/
 --extra-index-url https://pypi.org/simple/
 lumigo_tracer`);
+			});
 
-			await lumigo.afterPackageInitialize();
-			assertPythonFunctionsAreWrapped();
+			test("it should wrap all functions after package initialize", async () => {
+				await lumigo.afterPackageInitialize();
+				assertPythonFunctionsAreWrapped();
+			});
 		});
 
 		test("it should clean up after deployment artefact is created", async () => {
@@ -367,15 +428,15 @@ lumigo_tracer`);
 						events: []
 					}
 				};
-			});
 
-			test("it should check the requirements.txt in each function's folder", async () => {
 				fs.pathExistsSync.mockReturnValue(true);
 				fs.readFile.mockReturnValue(`
   --index-url https://1wmWND-GD5RPAwKgsdvb6DphXCj0vPLs@pypi.fury.io/lumigo/
   --extra-index-url https://pypi.org/simple/
   lumigo_tracer`);
+			});
 
+			test("it should check the requirements.txt in each function's folder", async () => {
 				await lumigo.afterPackageInitialize();
 				expect(fs.pathExistsSync).toBeCalledTimes(2);
 				expect(fs.pathExistsSync).toBeCalledWith(
@@ -403,12 +464,6 @@ lumigo_tracer`);
 				});
 
 				test("it should check the requirements for the override file", async () => {
-					fs.pathExistsSync.mockReturnValue(true);
-					fs.readFile.mockReturnValue(`
-  --index-url https://1wmWND-GD5RPAwKgsdvb6DphXCj0vPLs@pypi.fury.io/lumigo/
-  --extra-index-url https://pypi.org/simple/
-  lumigo_tracer`);
-
 					await lumigo.afterPackageInitialize();
 
 					expect(fs.pathExistsSync).toBeCalledTimes(2);
@@ -490,9 +545,9 @@ describe("is not nodejs or python", () => {
 });
 
 function assertNodejsFunctionsAreWrapped() {
-	expect(childProcess.exec).toBeCalledWith(
+	expect(childProcess.execSync).toBeCalledWith(
 		"npm install --no-save @lumigo/tracer@latest",
-		expect.anything()
+		"utf8"
 	);
 
 	expect(fs.outputFile).toBeCalledTimes(6);
@@ -621,10 +676,7 @@ function assertFunctionsAreNotWrapped() {
 
 function assertNodejsFunctionsAreCleanedUp() {
 	expect(fs.remove).toBeCalledWith(__dirname + "/_lumigo");
-	expect(childProcess.exec).toBeCalledWith(
-		"npm uninstall @lumigo/tracer",
-		expect.anything()
-	);
+	expect(childProcess.execSync).toBeCalledWith("npm uninstall @lumigo/tracer", "utf8");
 }
 
 function assertPythonFunctionsAreCleanedUp() {
