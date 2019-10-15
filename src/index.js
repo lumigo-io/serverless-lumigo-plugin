@@ -41,10 +41,10 @@ class LumigoPlugin {
 
 	get nodePackageManager() {
 		return _.get(
-			this.serverless.service, 
-			"custom.lumigo.nodePackageManager", 
-			NodePackageManagers.NPM)
-			.toLowerCase();
+			this.serverless.service,
+			"custom.lumigo.nodePackageManager",
+			NodePackageManagers.NPM
+		).toLowerCase();
 	}
 
 	async afterPackageInitialize() {

@@ -254,7 +254,7 @@ describe("Lumigo plugin (node.js)", () => {
 
 		describe("when nodePackageManager is Yarn", () => {
 			beforeEach(() => {
-				serverless.service.custom.lumigo.nodePackageManager = "yarn";					
+				serverless.service.custom.lumigo.nodePackageManager = "yarn";
 			});
 
 			test("it should install with Yarn", async () => {
