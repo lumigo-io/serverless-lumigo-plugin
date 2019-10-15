@@ -40,6 +40,7 @@ provider:
 custom:
   lumigo:
     token: <YOUR TOKEN GOES HERE>
+    nodePackageManager: <npm or yarn>
 ```
 
 ## Python functions

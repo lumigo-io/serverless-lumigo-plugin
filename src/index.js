@@ -5,9 +5,8 @@ const childProcess = BbPromise.promisifyAll(require("child_process"));
 const path = require("path");
 
 const NodePackageManagers = {
-	NPM: "NPM",
-	Yarn: "Yarn",
-	None: "None"
+	NPM: "npm",
+	Yarn: "yarn"
 };
 
 class LumigoPlugin {
@@ -41,13 +40,11 @@ class LumigoPlugin {
 	}
 
 	get nodePackageManager() {
-		if (this._nodePackageManager !== undefined) {
-			return this._nodePackageManager;
-		} else {
-			this._nodePackageManager = this.discoverNodePackageManager();
-		}
-
-		return this._nodePackageManager;
+		return _.get(
+			this.serverless.service,
+			"custom.lumigo.nodePackageManager",
+			NodePackageManagers.NPM
+		).toLowerCase();
 	}
 
 	async afterPackageInitialize() {
@@ -137,28 +134,6 @@ class LumigoPlugin {
 			this.log(`unsupported runtime: [${service.provider.runtime}], skipped...`);
 			return { runtime: "unsupported", functions: [] };
 		}
-	}
-
-	discoverNodePackageManager() {
-		try {
-			this.verboseLog("checking if NPM is installed...");
-			childProcess.execSync("npm --version");
-			this.verboseLog("NPM is installed");
-			return NodePackageManagers.NPM;
-		} catch (err) {
-			this.verboseLog("NPM is not found");
-		}
-
-		try {
-			this.verboseLog("checking if Yarn is installed...");
-			childProcess.execSync("yarn --version");
-			this.verboseLog("Yarn is installed");
-			return NodePackageManagers.Yarn;
-		} catch (err) {
-			this.verboseLog("Yarn is not found");
-		}
-
-		return NodePackageManagers.None;
 	}
 
 	isLumigoNodejsInstalled() {
