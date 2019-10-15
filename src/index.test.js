@@ -252,15 +252,9 @@ describe("Lumigo plugin (node.js)", () => {
 			});
 		});
 
-		describe("when NPM is not available", () => {
+		describe("when nodePackageManager is Yarn", () => {
 			beforeEach(() => {
-				childProcess.execSync.mockImplementation(cmd => {
-					if (cmd === "npm --version") {
-						throw new Error("npm: command not found");
-					} else {
-						return "";
-					}
-				});
+				serverless.service.custom.lumigo.nodePackageManager = "yarn";					
 			});
 
 			test("it should install with Yarn", async () => {
@@ -282,17 +276,9 @@ describe("Lumigo plugin (node.js)", () => {
 			});
 		});
 
-		describe("when NPM and Yarn are both not available", () => {
+		describe("when nodePackageManager is not NPM or Yarn", () => {
 			beforeEach(() => {
-				childProcess.execSync.mockImplementation(cmd => {
-					if (cmd === "npm --version") {
-						throw new Error("npm: command not found");
-					} else if (cmd === "yarn --version") {
-						throw new Error("yarn: command not found");
-					} else {
-						return "";
-					}
-				});
+				serverless.service.custom.lumigo.nodePackageManager = "whatever";
 			});
 
 			test("it should error on install", async () => {
