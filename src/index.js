@@ -23,6 +23,9 @@ class LumigoPlugin {
 
 		this.hooks = {
 			"after:package:initialize": this.afterPackageInitialize.bind(this),
+			"after:deploy:function:initialize": this.afterDeployFunctionInitialize.bind(
+				this
+			),
 			"after:package:createDeploymentArtifacts": this.afterCreateDeploymentArtifacts.bind(
 				this
 			)
@@ -47,9 +50,19 @@ class LumigoPlugin {
 		).toLowerCase();
 	}
 
+	async afterDeployFunctionInitialize() {
+		await this.wrapFunctions([this.options.function]);
+	}
+
 	async afterPackageInitialize() {
-		// [{"handler":"handler.hello","events":[],"name":"aws-nodejs-dev-hello"}]
-		const { runtime, functions } = this.getFunctionsToWrap(this.serverless.service);
+		await this.wrapFunctions();
+	}
+
+	async wrapFunctions(functionNames) {
+		const { runtime, functions } = this.getFunctionsToWrap(
+			this.serverless.service,
+			functionNames
+		);
 
 		this.log(`there are ${functions.length} function(s) to wrap...`);
 		functions.forEach(fn => this.verboseLog(JSON.stringify(fn)));
@@ -119,12 +132,15 @@ class LumigoPlugin {
 		}
 	}
 
-	getFunctionsToWrap(service) {
-		const functions = service.getAllFunctions().map(localName => {
-			const x = _.cloneDeep(service.getFunction(localName));
-			x.localName = localName;
-			return x;
-		});
+	getFunctionsToWrap(service, functionNames) {
+		const functions = service
+			.getAllFunctions()
+			.filter(localName => !functionNames || functionNames.includes(localName))
+			.map(localName => {
+				const x = _.cloneDeep(service.getFunction(localName));
+				x.localName = localName;
+				return x;
+			});
 
 		if (service.provider.runtime.startsWith("nodejs")) {
 			return { runtime: "nodejs", functions };
