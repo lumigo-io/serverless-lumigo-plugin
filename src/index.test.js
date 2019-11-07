@@ -22,6 +22,7 @@ expect.extend({
 
 let serverless;
 let lumigo;
+let options;
 
 const log = jest.fn();
 
@@ -66,7 +67,8 @@ beforeEach(() => {
 	serverless.config.servicePath = __dirname;
 	childProcess.execSync.mockImplementation(() => "");
 	const LumigoPlugin = require("./index");
-	lumigo = new LumigoPlugin(serverless, {});
+	options = {};
+	lumigo = new LumigoPlugin(serverless, options);
 
 	delete process.env.SLS_DEBUG;
 });
@@ -224,6 +226,19 @@ describe("Lumigo plugin (node.js)", () => {
 			await expect(lumigo.afterCreateDeploymentArtifacts()).rejects.toThrow(
 				"No Node.js package manager found. Please install either NPM or Yarn."
 			);
+		});
+	});
+
+	describe("when deploying a single function using 'sls deploy -f'", () => {
+		beforeEach(async () => {
+			options.function = "hello";
+			await lumigo.afterDeployFunctionInitialize();
+		});
+
+		it("should only wrap one function", () => {
+			expect(fs.outputFile).toBeCalledTimes(1);
+			assertFileOutput({ filename: "hello.js", requireHandler: "require('../hello').world" });
+			expect(serverless.service.functions.hello.handler).toBe("_lumigo/hello.world");
 		});
 	});
 });
