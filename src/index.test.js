@@ -92,208 +92,142 @@ describe("Invalid plugin configuration", () => {
 });
 
 describe("Lumigo plugin (node.js)", () => {
-	describe("nodejs8.10", () => {
+	describe.each`
+		runtime         |
+		${"nodejs8.10"}
+		${"nodejs10.x"}
+	`("when using runtime $runtime", ({ runtime }) => {
+
+	beforeEach(() => {
+		serverless.service.provider.runtime = runtime;
+	});
+
+	test("edgeHost configuration present, should appear in the wrapped code", async () => {
+		serverless.service.custom.lumigo["edgeHost"] = edgeHost;
+		await lumigo.afterPackageInitialize();
+
+		expect(fs.outputFile).toBeCalledWith(
+			__dirname + "/_lumigo/hello.js",
+			expect.toContainAllStrings(`edgeHost: '${edgeHost}'`)
+		);
+	});
+
+	test("edgeHost configuration not present, should not appear in the wrapped code", async () => {
+		await lumigo.afterPackageInitialize();
+
+		expect(fs.outputFile).toBeCalledWith(
+			__dirname + "/_lumigo/hello.js",
+			expect.not.toContainAllStrings(`edgeHost: '${edgeHost}'`)
+		);
+	});
+
+	test("it should wrap all functions after package initialize", async () => {
+		await lumigo.afterPackageInitialize();
+		assertNodejsFunctionsAreWrapped();
+	});
+
+	test("it should clean up after deployment artefact is created", async () => {
+		await lumigo.afterCreateDeploymentArtifacts();
+		assertNodejsFunctionsAreCleanedUp();
+	});
+
+	describe("there are no functions", () => {
 		beforeEach(() => {
-			serverless.service.provider.runtime = "nodejs8.10";
+			serverless.service.functions = {};
 		});
 
-		test("edgeHost configuration present, should appear in the wrapped code", async () => {
-			serverless.service.custom.lumigo["edgeHost"] = edgeHost;
+		test("it shouldn't wrap any function after package initialize", async () => {
 			await lumigo.afterPackageInitialize();
-
-			expect(fs.outputFile).toBeCalledWith(
-				__dirname + "/_lumigo/hello.js",
-				expect.toContainAllStrings(`edgeHost: '${edgeHost}'`)
-			);
+			assertFunctionsAreNotWrapped();
 		});
 
-		test("edgeHost configuration not present, should not appear in the wrapped code", async () => {
-			await lumigo.afterPackageInitialize();
-
-			expect(fs.outputFile).toBeCalledWith(
-				__dirname + "/_lumigo/hello.js",
-				expect.not.toContainAllStrings(`edgeHost: '${edgeHost}'`)
-			);
-		});
-
-		test("it should wrap all functions after package initialize", async () => {
-			await lumigo.afterPackageInitialize();
-			assertNodejsFunctionsAreWrapped();
-		});
-
-		test("it should clean up after deployment artefact is created", async () => {
+		test("it does nothing after deployment artefact is created", async () => {
 			await lumigo.afterCreateDeploymentArtifacts();
-			assertNodejsFunctionsAreCleanedUp();
-		});
-
-		describe("there are no functions", () => {
-			beforeEach(() => {
-				serverless.service.functions = {};
-			});
-
-			test("it shouldn't wrap any function after package initialize", async () => {
-				await lumigo.afterPackageInitialize();
-				assertFunctionsAreNotWrapped();
-			});
-
-			test("it does nothing after deployment artefact is created", async () => {
-				await lumigo.afterCreateDeploymentArtifacts();
-				assertNothingHappens();
-			});
-		});
-
-		describe("when functions are packaged individually", () => {
-			beforeEach(() => {
-				serverless.service.package = {
-					individually: true
-				};
-			});
-
-			test("if package.include is not set, it's initialized with _lumigo/*", async () => {
-				await lumigo.afterPackageInitialize();
-				assertLumigoIsIncluded();
-			});
-
-			test("if package.include is set, it adds _lumigo/* to the array", async () => {
-				Object.values(serverless.service.functions).forEach(fun => {
-					fun.package = {
-						include: ["node_modules/**/*"]
-					};
-				});
-
-				await lumigo.afterPackageInitialize();
-				assertLumigoIsIncluded();
-			});
-		});
-
-		describe("if verbose logging is enabled", () => {
-			beforeEach(() => {
-				process.env.SLS_DEBUG = "*";
-			});
-
-			test("it should publish debug messages", async () => {
-				await lumigo.afterPackageInitialize();
-
-				const logs = log.mock.calls.map(x => x[0]);
-				expect(logs).toContain(
-					"serverless-lumigo: setting [hello]'s handler to [_lumigo/hello.world]..."
-				);
-			});
+			assertNothingHappens();
 		});
 	});
 
-	describe("nodejs10.x", () => {
+	describe("when functions are packaged individually", () => {
 		beforeEach(() => {
-			serverless.service.provider.runtime = "nodejs10.x";
+			serverless.service.package = {
+				individually: true
+			};
 		});
 
-		test("it should wrap all functions after package initialize", async () => {
+		test("if package.include is not set, it's initialized with _lumigo/*", async () => {
 			await lumigo.afterPackageInitialize();
-			assertNodejsFunctionsAreWrapped();
+			assertLumigoIsIncluded();
 		});
 
-		test("it should clean up after deployment artefact is created", async () => {
-			await lumigo.afterCreateDeploymentArtifacts();
-			assertNodejsFunctionsAreCleanedUp();
-		});
-
-		describe("there are no functions", () => {
-			beforeEach(() => {
-				serverless.service.functions = {};
-			});
-
-			test("it shouldn't wrap any function after package initialize", async () => {
-				await lumigo.afterPackageInitialize();
-				assertFunctionsAreNotWrapped();
-			});
-
-			test("it does nothing after deployment artefact is created", async () => {
-				await lumigo.afterCreateDeploymentArtifacts();
-				assertNothingHappens();
-			});
-		});
-
-		describe("when functions are packaged individually", () => {
-			beforeEach(() => {
-				serverless.service.package = {
-					individually: true
+		test("if package.include is set, it adds _lumigo/* to the array", async () => {
+			Object.values(serverless.service.functions).forEach(fun => {
+				fun.package = {
+					include: ["node_modules/**/*"]
 				};
 			});
 
-			test("if package.include is not set, it's initialized with _lumigo/*", async () => {
-				await lumigo.afterPackageInitialize();
-				assertLumigoIsIncluded();
-			});
-
-			test("if package.include is set, it adds _lumigo/* to the array", async () => {
-				Object.values(serverless.service.functions).forEach(fun => {
-					fun.package = {
-						include: ["node_modules/**/*"]
-					};
-				});
-
-				await lumigo.afterPackageInitialize();
-				assertLumigoIsIncluded();
-			});
-		});
-
-		describe("if verbose logging is enabled", () => {
-			beforeEach(() => {
-				process.env.SLS_DEBUG = "*";
-			});
-
-			test("it should publish debug messages", async () => {
-				await lumigo.afterPackageInitialize();
-
-				const logs = log.mock.calls.map(x => x[0]);
-				expect(logs).toContain(
-					"serverless-lumigo: setting [hello]'s handler to [_lumigo/hello.world]..."
-				);
-			});
-		});
-
-		describe("when nodePackageManager is Yarn", () => {
-			beforeEach(() => {
-				serverless.service.custom.lumigo.nodePackageManager = "yarn";
-			});
-
-			test("it should install with Yarn", async () => {
-				await lumigo.afterPackageInitialize();
-
-				expect(childProcess.execSync).toBeCalledWith(
-					"yarn add @lumigo/tracer@latest",
-					"utf8"
-				);
-			});
-
-			test("it should uninstall with Yarn", async () => {
-				await lumigo.afterCreateDeploymentArtifacts();
-
-				expect(childProcess.execSync).toBeCalledWith(
-					"yarn remove @lumigo/tracer",
-					"utf8"
-				);
-			});
-		});
-
-		describe("when nodePackageManager is not NPM or Yarn", () => {
-			beforeEach(() => {
-				serverless.service.custom.lumigo.nodePackageManager = "whatever";
-			});
-
-			test("it should error on install", async () => {
-				await expect(lumigo.afterPackageInitialize()).rejects.toThrow(
-					"No Node.js package manager found. Please install either NPM or Yarn."
-				);
-			});
-
-			test("it should error on uninstall", async () => {
-				await expect(lumigo.afterCreateDeploymentArtifacts()).rejects.toThrow(
-					"No Node.js package manager found. Please install either NPM or Yarn."
-				);
-			});
+			await lumigo.afterPackageInitialize();
+			assertLumigoIsIncluded();
 		});
 	});
+
+	describe("if verbose logging is enabled", () => {
+		beforeEach(() => {
+			process.env.SLS_DEBUG = "*";
+		});
+
+		test("it should publish debug messages", async () => {
+			await lumigo.afterPackageInitialize();
+
+			const logs = log.mock.calls.map(x => x[0]);
+			expect(logs).toContain(
+				"serverless-lumigo: setting [hello]'s handler to [_lumigo/hello.world]..."
+			);
+		});
+	});
+
+	describe("when nodePackageManager is Yarn", () => {
+		beforeEach(() => {
+			serverless.service.custom.lumigo.nodePackageManager = "yarn";
+		});
+
+		test("it should install with Yarn", async () => {
+			await lumigo.afterPackageInitialize();
+
+			expect(childProcess.execSync).toBeCalledWith(
+				"yarn add @lumigo/tracer@latest",
+				"utf8"
+			);
+		});
+
+		test("it should uninstall with Yarn", async () => {
+			await lumigo.afterCreateDeploymentArtifacts();
+
+			expect(childProcess.execSync).toBeCalledWith(
+				"yarn remove @lumigo/tracer",
+				"utf8"
+			);
+		});
+	});
+
+	describe("when nodePackageManager is not NPM or Yarn", () => {
+		beforeEach(() => {
+			serverless.service.custom.lumigo.nodePackageManager = "whatever";
+		});
+
+		test("it should error on install", async () => {
+			await expect(lumigo.afterPackageInitialize()).rejects.toThrow(
+				"No Node.js package manager found. Please install either NPM or Yarn."
+			);
+		});
+
+		test("it should error on uninstall", async () => {
+			await expect(lumigo.afterCreateDeploymentArtifacts()).rejects.toThrow(
+				"No Node.js package manager found. Please install either NPM or Yarn."
+			);
+		});
+	});
+});
 });
 
 describe("Lumigo plugin (python)", () => {
