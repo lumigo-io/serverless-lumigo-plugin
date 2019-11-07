@@ -133,9 +133,11 @@ class LumigoPlugin {
 	}
 
 	getFunctionsToWrap(service, functionNames) {
+		functionNames = functionNames || this.serverless.service.getAllFunctions();
+
 		const functions = service
 			.getAllFunctions()
-			.filter(localName => !functionNames || functionNames.includes(localName))
+			.filter(localName => functionNames.includes(localName))
 			.map(localName => {
 				const x = _.cloneDeep(service.getFunction(localName));
 				x.localName = localName;
