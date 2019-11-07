@@ -97,7 +97,6 @@ describe("Lumigo plugin (node.js)", () => {
 		${"nodejs8.10"}
 		${"nodejs10.x"}
 	`("when using runtime $runtime", ({ runtime }) => {
-
 	beforeEach(() => {
 		serverless.service.provider.runtime = runtime;
 	});
@@ -464,61 +463,36 @@ describe("is not nodejs or python", () => {
 	});
 });
 
-function assertNodejsFunctionsAreWrapped() {
+function assertFileOutput({ filename, requireHandler }) {
+	expect(fs.outputFile).toBeCalledWith(
+		`${__dirname}/_lumigo/${filename}`,
+		expect.toContainAllStrings(
+			'const tracer = require("@lumigo/tracer")',
+			`const handler = ${requireHandler}`,
+			`token: '${token}'`
+		)
+	);
+}
+
+function assertTracerInstall() {
 	expect(childProcess.execSync).toBeCalledWith(
 		"npm install --no-save @lumigo/tracer@latest",
 		"utf8"
 	);
+}
+
+function assertNodejsFunctionsAreWrapped() {
+	assertTracerInstall();
 
 	expect(fs.outputFile).toBeCalledTimes(6);
-	expect(fs.outputFile).toBeCalledWith(
-		__dirname + "/_lumigo/hello.js",
-		expect.toContainAllStrings(
-			'const tracer = require("@lumigo/tracer")',
-			"const handler = require('../hello').world",
-			`token: '${token}'`
-		)
-	);
-	expect(fs.outputFile).toBeCalledWith(
-		__dirname + "/_lumigo/hello.world.js",
-		expect.toContainAllStrings(
-			'const tracer = require("@lumigo/tracer")',
-			"const handler = require('../hello.world').handler",
-			`token: '${token}'`
-		)
-	);
-	expect(fs.outputFile).toBeCalledWith(
-		__dirname + "/_lumigo/foo.js",
-		expect.toContainAllStrings(
-			'const tracer = require("@lumigo/tracer")',
-			"const handler = require('../foo_bar').handler",
-			`token: '${token}'`
-		)
-	);
-	expect(fs.outputFile).toBeCalledWith(
-		__dirname + "/_lumigo/bar.js",
-		expect.toContainAllStrings(
-			'const tracer = require("@lumigo/tracer")',
-			"const handler = require('../foo_bar').handler",
-			`token: '${token}'`
-		)
-	);
-	expect(fs.outputFile).toBeCalledWith(
-		__dirname + "/_lumigo/jet.js",
-		expect.toContainAllStrings(
-			'const tracer = require("@lumigo/tracer")',
-			"const handler = require('../foo/foo/bar').handler",
-			`token: '${token}'`
-		)
-	);
-	expect(fs.outputFile).toBeCalledWith(
-		__dirname + "/_lumigo/pack.js",
-		expect.toContainAllStrings(
-			'const tracer = require("@lumigo/tracer")',
-			"const handler = require('../foo.bar/zoo').handler",
-			`token: '${token}'`
-		)
-	);
+	[
+		{ filename: "hello.js", requireHandler: "require('../hello').world" },
+		{ filename: "hello.world.js",	requireHandler: "require('../hello.world').handler"	},
+		{ filename: "foo.js", requireHandler: "require('../foo_bar').handler" },
+		{ filename: "bar.js", requireHandler: "require('../foo_bar').handler" },
+		{ filename: "jet.js", requireHandler: "require('../foo/foo/bar').handler" },
+		{ filename: "pack.js", requireHandler: "require('../foo.bar/zoo').handler" }
+	].forEach(assertFileOutput);
 
 	const functions = serverless.service.functions;
 	expect(functions.hello.handler).toBe("_lumigo/hello.world");
