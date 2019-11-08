@@ -22,6 +22,7 @@ expect.extend({
 
 let serverless;
 let lumigo;
+let options;
 
 const log = jest.fn();
 
@@ -66,7 +67,8 @@ beforeEach(() => {
 	serverless.config.servicePath = __dirname;
 	childProcess.execSync.mockImplementation(() => "");
 	const LumigoPlugin = require("./index");
-	lumigo = new LumigoPlugin(serverless, {});
+	options = {};
+	lumigo = new LumigoPlugin(serverless, options);
 
 	delete process.env.SLS_DEBUG;
 });
@@ -92,9 +94,9 @@ describe("Invalid plugin configuration", () => {
 });
 
 describe("Lumigo plugin (node.js)", () => {
-	describe("nodejs8.10", () => {
+	describe.each([["nodejs8.10"], ["nodejs10.x"]])("when using runtime %s", runtime => {
 		beforeEach(() => {
-			serverless.service.provider.runtime = "nodejs8.10";
+			serverless.service.provider.runtime = runtime;
 		});
 
 		test("edgeHost configuration present, should appear in the wrapped code", async () => {
@@ -114,77 +116,6 @@ describe("Lumigo plugin (node.js)", () => {
 				__dirname + "/_lumigo/hello.js",
 				expect.not.toContainAllStrings(`edgeHost: '${edgeHost}'`)
 			);
-		});
-
-		test("it should wrap all functions after package initialize", async () => {
-			await lumigo.afterPackageInitialize();
-			assertNodejsFunctionsAreWrapped();
-		});
-
-		test("it should clean up after deployment artefact is created", async () => {
-			await lumigo.afterCreateDeploymentArtifacts();
-			assertNodejsFunctionsAreCleanedUp();
-		});
-
-		describe("there are no functions", () => {
-			beforeEach(() => {
-				serverless.service.functions = {};
-			});
-
-			test("it shouldn't wrap any function after package initialize", async () => {
-				await lumigo.afterPackageInitialize();
-				assertFunctionsAreNotWrapped();
-			});
-
-			test("it does nothing after deployment artefact is created", async () => {
-				await lumigo.afterCreateDeploymentArtifacts();
-				assertNothingHappens();
-			});
-		});
-
-		describe("when functions are packaged individually", () => {
-			beforeEach(() => {
-				serverless.service.package = {
-					individually: true
-				};
-			});
-
-			test("if package.include is not set, it's initialized with _lumigo/*", async () => {
-				await lumigo.afterPackageInitialize();
-				assertLumigoIsIncluded();
-			});
-
-			test("if package.include is set, it adds _lumigo/* to the array", async () => {
-				Object.values(serverless.service.functions).forEach(fun => {
-					fun.package = {
-						include: ["node_modules/**/*"]
-					};
-				});
-
-				await lumigo.afterPackageInitialize();
-				assertLumigoIsIncluded();
-			});
-		});
-
-		describe("if verbose logging is enabled", () => {
-			beforeEach(() => {
-				process.env.SLS_DEBUG = "*";
-			});
-
-			test("it should publish debug messages", async () => {
-				await lumigo.afterPackageInitialize();
-
-				const logs = log.mock.calls.map(x => x[0]);
-				expect(logs).toContain(
-					"serverless-lumigo: setting [hello]'s handler to [_lumigo/hello.world]..."
-				);
-			});
-		});
-	});
-
-	describe("nodejs10.x", () => {
-		beforeEach(() => {
-			serverless.service.provider.runtime = "nodejs10.x";
 		});
 
 		test("it should wrap all functions after package initialize", async () => {
@@ -290,6 +221,24 @@ describe("Lumigo plugin (node.js)", () => {
 			test("it should error on uninstall", async () => {
 				await expect(lumigo.afterCreateDeploymentArtifacts()).rejects.toThrow(
 					"No Node.js package manager found. Please install either NPM or Yarn."
+				);
+			});
+		});
+
+		describe("when deploying a single function using 'sls deploy -f'", () => {
+			beforeEach(async () => {
+				options.function = "hello";
+				await lumigo.afterDeployFunctionInitialize();
+			});
+
+			it("should only wrap one function", () => {
+				expect(fs.outputFile).toBeCalledTimes(1);
+				assertFileOutput({
+					filename: "hello.js",
+					requireHandler: "require('../hello').world"
+				});
+				expect(serverless.service.functions.hello.handler).toBe(
+					"_lumigo/hello.world"
 				);
 			});
 		});
@@ -530,61 +479,39 @@ describe("is not nodejs or python", () => {
 	});
 });
 
-function assertNodejsFunctionsAreWrapped() {
+function assertFileOutput({ filename, requireHandler }) {
+	expect(fs.outputFile).toBeCalledWith(
+		`${__dirname}/_lumigo/${filename}`,
+		expect.toContainAllStrings(
+			'const tracer = require("@lumigo/tracer")',
+			`const handler = ${requireHandler}`,
+			`token: '${token}'`
+		)
+	);
+}
+
+function assertTracerInstall() {
 	expect(childProcess.execSync).toBeCalledWith(
 		"npm install --no-save @lumigo/tracer@latest",
 		"utf8"
 	);
+}
+
+function assertNodejsFunctionsAreWrapped() {
+	assertTracerInstall();
 
 	expect(fs.outputFile).toBeCalledTimes(6);
-	expect(fs.outputFile).toBeCalledWith(
-		__dirname + "/_lumigo/hello.js",
-		expect.toContainAllStrings(
-			'const tracer = require("@lumigo/tracer")',
-			"const handler = require('../hello').world",
-			`token: '${token}'`
-		)
-	);
-	expect(fs.outputFile).toBeCalledWith(
-		__dirname + "/_lumigo/hello.world.js",
-		expect.toContainAllStrings(
-			'const tracer = require("@lumigo/tracer")',
-			"const handler = require('../hello.world').handler",
-			`token: '${token}'`
-		)
-	);
-	expect(fs.outputFile).toBeCalledWith(
-		__dirname + "/_lumigo/foo.js",
-		expect.toContainAllStrings(
-			'const tracer = require("@lumigo/tracer")',
-			"const handler = require('../foo_bar').handler",
-			`token: '${token}'`
-		)
-	);
-	expect(fs.outputFile).toBeCalledWith(
-		__dirname + "/_lumigo/bar.js",
-		expect.toContainAllStrings(
-			'const tracer = require("@lumigo/tracer")',
-			"const handler = require('../foo_bar').handler",
-			`token: '${token}'`
-		)
-	);
-	expect(fs.outputFile).toBeCalledWith(
-		__dirname + "/_lumigo/jet.js",
-		expect.toContainAllStrings(
-			'const tracer = require("@lumigo/tracer")',
-			"const handler = require('../foo/foo/bar').handler",
-			`token: '${token}'`
-		)
-	);
-	expect(fs.outputFile).toBeCalledWith(
-		__dirname + "/_lumigo/pack.js",
-		expect.toContainAllStrings(
-			'const tracer = require("@lumigo/tracer")',
-			"const handler = require('../foo.bar/zoo').handler",
-			`token: '${token}'`
-		)
-	);
+	[
+		{ filename: "hello.js", requireHandler: "require('../hello').world" },
+		{
+			filename: "hello.world.js",
+			requireHandler: "require('../hello.world').handler"
+		},
+		{ filename: "foo.js", requireHandler: "require('../foo_bar').handler" },
+		{ filename: "bar.js", requireHandler: "require('../foo_bar').handler" },
+		{ filename: "jet.js", requireHandler: "require('../foo/foo/bar').handler" },
+		{ filename: "pack.js", requireHandler: "require('../foo.bar/zoo').handler" }
+	].forEach(assertFileOutput);
 
 	const functions = serverless.service.functions;
 	expect(functions.hello.handler).toBe("_lumigo/hello.world");
