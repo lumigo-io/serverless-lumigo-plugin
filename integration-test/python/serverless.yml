@@ -1,0 +1,20 @@
+service: serverless-plugin-python
+
+custom:
+  lumigo:
+    token: 1234
+    enhance_print: true
+
+provider:
+  name: aws
+  runtime: python3.7
+  environment:
+    LUMIGO_SWITCH_OFF: "TRUE"
+
+functions:
+  hello:
+    handler: handler.hello
+
+plugins:
+  - ../../
+  - serverless-python-requirements

@@ -5,3 +5,20 @@ set -o pipefail
 npm run test:lint
 npm run prettier:ci
 npm run test
+
+pushd integration-test/nodejs
+sls deploy
+sls invoke -f hello
+popd
+
+
+pushd integration-test
+virtualenv venv -p python3.7
+. venv/bin/activate
+popd
+
+pushd integration-test/python
+npm i
+sls deploy
+sls invoke -f hello
+popd

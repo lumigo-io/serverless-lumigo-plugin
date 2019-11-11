@@ -105,7 +105,7 @@ describe("Lumigo plugin (node.js)", () => {
 
 			expect(fs.outputFile).toBeCalledWith(
 				__dirname + "/_lumigo/hello.js",
-				expect.toContainAllStrings(`edgeHost: '${edgeHost}'`)
+				expect.toContainAllStrings(`edgeHost:'${edgeHost}'`)
 			);
 		});
 
@@ -114,7 +114,7 @@ describe("Lumigo plugin (node.js)", () => {
 
 			expect(fs.outputFile).toBeCalledWith(
 				__dirname + "/_lumigo/hello.js",
-				expect.not.toContainAllStrings(`edgeHost: '${edgeHost}'`)
+				expect.not.toContainAllStrings(`edgeHost:'${edgeHost}'`)
 			);
 		});
 
@@ -294,13 +294,23 @@ lumigo_tracer`);
 
 			test("it should wrap all functions after package initialize", async () => {
 				await lumigo.afterPackageInitialize();
-				assertPythonFunctionsAreWrapped();
+				assertPythonFunctionsAreWrapped({ token: `'${token}'` });
+			});
+
+			test("enhance_print configuration present, should appear in the wrapped code", async () => {
+				serverless.service.custom.lumigo["enhance_print"] = true;
+				await lumigo.afterPackageInitialize();
+
+				assertPythonFunctionsAreWrapped({
+					token: `'${token}'`,
+					enhance_print: "True"
+				});
 			});
 		});
 
 		test("it should clean up after deployment artefact is created", async () => {
 			await lumigo.afterCreateDeploymentArtifacts();
-			assertPythonFunctionsAreCleanedUp();
+			assertPythonFunctionsAreCleanedUp({ token: `'${token}'` });
 		});
 
 		describe("if there is override file name for requirements.txt (for the serverless-python-requirements plugin)", () => {
@@ -318,7 +328,7 @@ lumigo_tracer`);
   lumigo_tracer`);
 
 				await lumigo.afterPackageInitialize();
-				assertPythonFunctionsAreWrapped();
+				assertPythonFunctionsAreWrapped({ token: `'${token}'` });
 				expect(fs.pathExistsSync).toBeCalledWith("requirements-dev.txt");
 				expect(fs.readFile).toBeCalledWith("requirements-dev.txt", "utf8");
 			});
@@ -485,7 +495,7 @@ function assertFileOutput({ filename, requireHandler }) {
 		expect.toContainAllStrings(
 			'const tracer = require("@lumigo/tracer")',
 			`const handler = ${requireHandler}`,
-			`token: '${token}'`
+			`token:'${token}'`
 		)
 	);
 }
@@ -522,14 +532,18 @@ function assertNodejsFunctionsAreWrapped() {
 	expect(functions.pack.handler).toBe("_lumigo/pack.handler");
 }
 
-function assertPythonFunctionsAreWrapped() {
+function assertPythonFunctionsAreWrapped(parameters) {
+	let endParams = [];
+	for (const [key, value] of Object.entries(parameters)) {
+		endParams.push(`${key}=${value}`);
+	}
 	expect(fs.outputFile).toBeCalledTimes(6);
 	expect(fs.outputFile).toBeCalledWith(
 		__dirname + "/_lumigo/hello.py",
 		expect.toContainAllStrings(
 			"from lumigo_tracer import lumigo_tracer",
 			"from hello import world as userHandler",
-			`@lumigo_tracer(token='${token}')`
+			`@lumigo_tracer(${endParams.join(",")})`
 		)
 	);
 	expect(fs.outputFile).toBeCalledWith(
@@ -537,7 +551,7 @@ function assertPythonFunctionsAreWrapped() {
 		expect.toContainAllStrings(
 			"from lumigo_tracer import lumigo_tracer",
 			"from hello.world import handler as userHandler",
-			`@lumigo_tracer(token='${token}')`
+			`@lumigo_tracer(${endParams.join(",")})`
 		)
 	);
 	expect(fs.outputFile).toBeCalledWith(
@@ -545,7 +559,7 @@ function assertPythonFunctionsAreWrapped() {
 		expect.toContainAllStrings(
 			"from lumigo_tracer import lumigo_tracer",
 			"from foo_bar import handler as userHandler",
-			`@lumigo_tracer(token='${token}')`
+			`@lumigo_tracer(${endParams.join(",")})`
 		)
 	);
 	expect(fs.outputFile).toBeCalledWith(
@@ -553,7 +567,7 @@ function assertPythonFunctionsAreWrapped() {
 		expect.toContainAllStrings(
 			"from lumigo_tracer import lumigo_tracer",
 			"from foo_bar import handler as userHandler",
-			`@lumigo_tracer(token='${token}')`
+			`@lumigo_tracer(${endParams.join(",")})`
 		)
 	);
 	expect(fs.outputFile).toBeCalledWith(
@@ -561,7 +575,7 @@ function assertPythonFunctionsAreWrapped() {
 		expect.toContainAllStrings(
 			"from lumigo_tracer import lumigo_tracer",
 			"from foo.foo.bar import handler as userHandler",
-			`@lumigo_tracer(token='${token}')`
+			`@lumigo_tracer(${endParams.join(",")})`
 		)
 	);
 	expect(fs.outputFile).toBeCalledWith(
@@ -569,7 +583,7 @@ function assertPythonFunctionsAreWrapped() {
 		expect.toContainAllStrings(
 			"from lumigo_tracer import lumigo_tracer",
 			"from foo.bar.zoo import handler as userHandler",
-			`@lumigo_tracer(token='${token}')`
+			`@lumigo_tracer(${endParams.join(",")})`
 		)
 	);
 
