@@ -7,9 +7,9 @@ jobs:
     working_directory: ~/serverless-lumigo
     steps:
       - checkout
-      - run: sudo npm install -g serverless
-      - run: sudo apt-get install python3-pip
-      - run: sudo pip3 install virtualenv
+      - run: wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+      - run: bash miniconda.sh -b -p $HOME/miniconda
+      - run: ./miniconda/bin/pip install virtualenv
       - run: npm ci
       - run: npm run test:all
       - run: npm run codecov
