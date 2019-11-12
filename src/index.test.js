@@ -297,13 +297,23 @@ lumigo_tracer`);
 				assertPythonFunctionsAreWrapped({ token: `'${token}'` });
 			});
 
-			test("enhance_print configuration present, should appear in the wrapped code", async () => {
+			test("enhance_print configuration present with true, should appear in the wrapped code", async () => {
 				serverless.service.custom.lumigo["enhance_print"] = true;
 				await lumigo.afterPackageInitialize();
 
 				assertPythonFunctionsAreWrapped({
 					token: `'${token}'`,
 					enhance_print: "True"
+				});
+			});
+
+			test("enhance_print configuration present with false, should appear in the wrapped code", async () => {
+				serverless.service.custom.lumigo["enhance_print"] = "false";
+				await lumigo.afterPackageInitialize();
+
+				assertPythonFunctionsAreWrapped({
+					token: `'${token}'`,
+					enhance_print: "False"
 				});
 			});
 		});
