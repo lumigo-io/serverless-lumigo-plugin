@@ -8,6 +8,8 @@ jobs:
     steps:
       - checkout
       - run: sudo npm install -g serverless
+      - run: sudo apt-get install python3-pip
+      - run: sudo pip3 install virtualenv
       - run: npm ci
       - run: npm run test:all
       - run: npm run codecov
