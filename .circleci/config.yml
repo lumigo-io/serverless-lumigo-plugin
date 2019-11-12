@@ -10,6 +10,7 @@ jobs:
       - run: wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
       - run: bash miniconda.sh -b -p $HOME/miniconda
       - run: pushd $HOME/miniconda/bin && ./pip install virtualenv && popd
+      - run: export PATH=$PATH:$HOME/miniconda/bin
       - run: npm ci
       - run: npm run test:all
       - run: npm run codecov
