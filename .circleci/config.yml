@@ -7,8 +7,9 @@ jobs:
     working_directory: ~/serverless-lumigo
     steps:
       - checkout
+      - run: npm install -g serverless
       - run: npm ci
-      - run: ./scripts/checks.sh
+      - run: npm run test:all
       - run: npm run codecov
 
   deploy:
@@ -18,6 +19,8 @@ jobs:
     steps:
       - checkout
       - run: npm ci
+      - run: npm run test
+      - run: npm run codecov
       - run: npm run semantic-release
 
 workflows:
