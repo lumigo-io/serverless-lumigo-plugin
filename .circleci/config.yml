@@ -7,7 +7,7 @@ jobs:
     working_directory: ~/serverless-lumigo
     steps:
       - checkout
-      - run: npm install -g serverless
+      - run: sudo npm install -g serverless
       - run: npm ci
       - run: npm run test:all
       - run: npm run codecov
