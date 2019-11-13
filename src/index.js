@@ -289,20 +289,26 @@ Consider using the serverless-python-requirements plugin to help you package Pyt
 		if (token === undefined) {
 			throw new this.serverless.classes.Error("Lumigo's tracer token is undefined");
 		}
-		let configuration = [`token${equalityToken}'${token}'`];
-
+		let configuration = [];
+		options = _.omit(options, ["nodePackageManager"]);
 		for (const [key, value] of Object.entries(options)) {
-			if (key !== "token" && key !== "nodePackageManager") {
-				if (String(value).toLowerCase() === "true") {
-					configuration.push(`${key}${equalityToken}${trueValue}`);
-				} else if (String(value).toLowerCase() === "false") {
-					configuration.push(`${key}${equalityToken}${falseValue}`);
-				} else {
-					configuration.push(`${key}${equalityToken}'${value}'`);
-				}
+			if (String(value).toLowerCase() === "true") {
+				configuration.push(`${key}${equalityToken}${trueValue}`);
+			} else if (String(value).toLowerCase() === "false") {
+				configuration.push(`${key}${equalityToken}${falseValue}`);
+			} else {
+				configuration.push(`${key}${equalityToken}'${value}'`);
 			}
 		}
 		return configuration.join(",");
+	}
+
+	getNodeTracerParameters(token, options) {
+		return this.getTracerParameters(token, options, ":", "true", "false");
+	}
+
+	getPythonTracerParameters(token, options) {
+		return this.getTracerParameters(token, options, "=", "True", "False");
 	}
 
 	async createWrappedNodejsFunction(func, token, options) {
@@ -319,7 +325,7 @@ Consider using the serverless-python-requirements plugin to help you package Pyt
 		const handlerFuncName = handler.substr(handler.lastIndexOf(".") + 1);
 		const wrappedFunction = `
 const tracer = require("@lumigo/tracer")({
-	${this.getTracerParameters(token, options)}
+	${this.getNodeTracerParameters(token, options)}
 });
 const handler = require('../${handlerModulePath}').${handlerFuncName};
 
@@ -359,7 +365,7 @@ module.exports.${handlerFuncName} = tracer.trace(handler);
 from lumigo_tracer import lumigo_tracer
 from ${handlerModulePath} import ${handlerFuncName} as userHandler
 
-@lumigo_tracer(${this.getTracerParameters(token, options, "=", "True", "False")})
+@lumigo_tracer(${this.getPythonTracerParameters(token, options)})
 def ${handlerFuncName}(event, context):
   return userHandler(event, context)
     `;
