@@ -32,16 +32,6 @@ class LumigoPlugin {
 		};
 	}
 
-	get isNodeTracerInstalled() {
-		if (this._isNodeTracerInstalled !== undefined) {
-			return this._isNodeTracerInstalled;
-		} else {
-			this._isNodeTracerInstalled = this.isLumigoNodejsInstalled();
-		}
-
-		return this._isNodeTracerInstalled;
-	}
-
 	get nodePackageManager() {
 		return _.get(
 			this.serverless.service,
@@ -154,32 +144,7 @@ class LumigoPlugin {
 		}
 	}
 
-	isLumigoNodejsInstalled() {
-		const packageJsonPath = path.join(
-			this.serverless.config.servicePath,
-			"package.json"
-		);
-
-		try {
-			const packageJson = require(packageJsonPath);
-			const dependencies = _.get(packageJson, "dependencies", {});
-			return _.has(dependencies, "@lumigo/tracer");
-		} catch (err) {
-			this.verboseLog(
-				"error when trying to check if @lumigo/tracer is already installed..."
-			);
-			this.verboseLog(err.message);
-			this.verboseLog("assume @lumigo/tracer has not been installed...");
-			return false;
-		}
-	}
-
 	async installLumigoNodejs() {
-		if (this.isNodeTracerInstalled) {
-			this.verboseLog("@lumigo/tracer is already installed, skipped...");
-			return;
-		}
-
 		this.log("installing @lumigo/tracer...");
 		let installCommand;
 		if (this.nodePackageManager === NodePackageManagers.NPM) {
