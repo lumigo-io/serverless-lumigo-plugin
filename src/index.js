@@ -62,7 +62,7 @@ class LumigoPlugin {
 		}
 
 		const token = _.get(this.serverless.service, "custom.lumigo.token");
-		const edgeHost = _.get(this.serverless.service, "custom.lumigo.edgeHost");
+		const parameters = _.get(this.serverless.service, "custom.lumigo", {});
 		if (token === undefined) {
 			throw new this.serverless.classes.Error(
 				"serverless-lumigo: Unable to find token. Please follow https://github.com/lumigo-io/serverless-lumigo"
@@ -76,7 +76,7 @@ class LumigoPlugin {
 				const handler = await this.createWrappedNodejsFunction(
 					func,
 					token,
-					edgeHost
+					parameters
 				);
 				// replace the function handler to the wrapped function
 				this.verboseLog(
@@ -91,7 +91,7 @@ class LumigoPlugin {
 				const handler = await this.createWrappedPythonFunction(
 					func,
 					token,
-					edgeHost
+					parameters
 				);
 				// replace the function handler to the wrapped function
 				this.verboseLog(
@@ -244,18 +244,39 @@ Consider using the serverless-python-requirements plugin to help you package Pyt
 		}
 	}
 
-	getNodeTracerParameters(token, edgeHost) {
+	getTracerParameters(
+		token,
+		options,
+		equalityToken = ":",
+		trueValue = "true",
+		falseValue = "false"
+	) {
 		if (token === undefined) {
 			throw new this.serverless.classes.Error("Lumigo's tracer token is undefined");
 		}
-		let configuration = [`token: '${token}'`];
-		if (edgeHost) {
-			configuration.push(`edgeHost: '${edgeHost}'`);
+		let configuration = [];
+		options = _.omit(options, ["nodePackageManager"]);
+		for (const [key, value] of Object.entries(options)) {
+			if (String(value).toLowerCase() === "true") {
+				configuration.push(`${key}${equalityToken}${trueValue}`);
+			} else if (String(value).toLowerCase() === "false") {
+				configuration.push(`${key}${equalityToken}${falseValue}`);
+			} else {
+				configuration.push(`${key}${equalityToken}'${value}'`);
+			}
 		}
 		return configuration.join(",");
 	}
 
-	async createWrappedNodejsFunction(func, token, edgeHost) {
+	getNodeTracerParameters(token, options) {
+		return this.getTracerParameters(token, options, ":", "true", "false");
+	}
+
+	getPythonTracerParameters(token, options) {
+		return this.getTracerParameters(token, options, "=", "True", "False");
+	}
+
+	async createWrappedNodejsFunction(func, token, options) {
 		this.verboseLog(`wrapping [${func.handler}]...`);
 
 		const localName = func.localName;
@@ -269,7 +290,7 @@ Consider using the serverless-python-requirements plugin to help you package Pyt
 		const handlerFuncName = handler.substr(handler.lastIndexOf(".") + 1);
 		const wrappedFunction = `
 const tracer = require("@lumigo/tracer")({
-	${this.getNodeTracerParameters(token, edgeHost)}
+	${this.getNodeTracerParameters(token, options)}
 });
 const handler = require('../${handlerModulePath}').${handlerFuncName};
 
@@ -289,7 +310,7 @@ module.exports.${handlerFuncName} = tracer.trace(handler);
 		return newFilePath.substr(0, newFilePath.lastIndexOf(".") + 1) + handlerFuncName;
 	}
 
-	async createWrappedPythonFunction(func, token) {
+	async createWrappedPythonFunction(func, token, options) {
 		this.verboseLog(`wrapping [${func.handler}]...`);
 
 		const localName = func.localName;
@@ -309,7 +330,7 @@ module.exports.${handlerFuncName} = tracer.trace(handler);
 from lumigo_tracer import lumigo_tracer
 from ${handlerModulePath} import ${handlerFuncName} as userHandler
 
-@lumigo_tracer(token='${token}')
+@lumigo_tracer(${this.getPythonTracerParameters(token, options)})
 def ${handlerFuncName}(event, context):
   return userHandler(event, context)
     `;

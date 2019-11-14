@@ -64,3 +64,6 @@ custom:
   lumigo:
     token: <YOUR TOKEN GOES HERE>
 ```
+
+## How to test
+* Run `npm run test-all`

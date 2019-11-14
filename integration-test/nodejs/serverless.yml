@@ -1,0 +1,21 @@
+service: serverless-plugin-nodejs
+
+custom:
+    lumigo:
+        token: 1234
+        nodePackageManager: npm
+        edgeHost: test.execute-api.us-west-2.amazonaws.com
+
+
+provider:
+    name: aws
+    runtime: nodejs10.x
+    environment:
+      LUMIGO_SWITCH_OFF: "TRUE"
+
+functions:
+    hello:
+        handler: handler.hello
+
+plugins:
+    - ./../../../serverless-lumigo-plugin
