@@ -18,4 +18,4 @@ functions:
         handler: handler.hello
 
 plugins:
-    - ../../
+    - ./../../../serverless-lumigo-plugin

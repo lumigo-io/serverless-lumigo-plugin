@@ -7,6 +7,7 @@ npm run prettier:ci
 npm run test
 
 pushd integration-test/nodejs
+
 sls deploy
 sls invoke -f hello
 sls remove
