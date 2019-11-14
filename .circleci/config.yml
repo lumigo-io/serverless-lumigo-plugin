@@ -4,7 +4,7 @@ jobs:
   build:
     docker:
       - image: circleci/node:10.16.0
-    working_directory: ~/serverless-lumigo
+    working_directory: ~/serverless-lumigo-plugin
     steps:
       - checkout
       - run: wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
