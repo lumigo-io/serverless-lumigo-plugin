@@ -4,12 +4,13 @@ custom:
   lumigo:
     token: 1234
     enhance_print: true
+    should_report: false
 
 provider:
   name: aws
   runtime: python3.7
   environment:
-    LUMIGO_SWITCH_OFF: "TRUE"
+    LUMIGO_DEBUG: "TRUE"
 
 functions:
   hello:

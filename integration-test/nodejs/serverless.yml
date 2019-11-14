@@ -12,6 +12,7 @@ provider:
     runtime: nodejs10.x
     environment:
       LUMIGO_SWITCH_OFF: "TRUE"
+      LUMIGO_DEBUG: "TRUE"
 
 functions:
     hello:
