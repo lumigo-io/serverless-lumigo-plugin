@@ -13,6 +13,7 @@ Serverless framework plugin to auto-install the Lumigo tracer for Node.js and Py
 - [Install](#install)
 - [Node.js functions](#nodejs-functions)
 - [Python functions](#python-functions)
+- [Configuring the tracer](#configuration)
 
 ## Install
 
@@ -63,6 +64,15 @@ provider:
 custom:
   lumigo:
     token: <YOUR TOKEN GOES HERE>
+```
+
+## Configuration
+In order to pass parameters to the tracer, just add them as keys to lumigo custom configuration. For example, in order to add [enhanced print](https://github.com/lumigo-io/python_tracer#enhanced-print) support use:
+```yml
+custom:
+  lumigo:
+    token: <YOUR TOKEN GOES HERE>
+    enhance_print: true
 ```
 
 ## How to test
