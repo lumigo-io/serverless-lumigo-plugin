@@ -267,6 +267,38 @@ describe("Lumigo plugin (python)", () => {
 			serverless.service.provider.runtime = "python3.7";
 		});
 
+		describe("Using zip configuration", () => {
+			beforeEach(() => {
+				serverless.service.functions = {
+					hello: {
+						handler: "hello.world",
+						events: []
+					}
+				};
+				serverless.service.custom.pythonRequirements = { zip: true };
+				fs.pathExistsSync.mockReturnValue(true);
+				fs.readFile.mockReturnValue(`
+--index-url https://1wmWND-GD5RPAwKgsdvb6DphXCj0vPLs@pypi.fury.io/lumigo/
+--extra-index-url https://pypi.org/simple/
+lumigo_tracer`);
+			});
+
+			test("When zip is set then add special construct", async () => {
+				await lumigo.afterPackageInitialize();
+				expect(fs.outputFile).toBeCalledWith(
+					__dirname + "/_lumigo/hello.py",
+					expect.toContainAllStrings(
+						"try:",
+						"import unzip_requirements",
+						"except ImportError:",
+						"pass",
+						"from lumigo_tracer import lumigo_tracer",
+						"from hello import world as userHandler"
+					)
+				);
+			});
+		});
+
 		describe("there are no functions", () => {
 			beforeEach(() => {
 				serverless.service.functions = {};

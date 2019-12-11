@@ -86,12 +86,14 @@ class LumigoPlugin {
 			}
 		} else if (runtime === "python") {
 			await this.ensureLumigoPythonIsInstalled();
-
+			const { isZip } = await this.getPythonPluginConfiguration();
+			this.verboseLog(`Python plugin zip status ${isZip}`);
 			for (const func of functions) {
 				const handler = await this.createWrappedPythonFunction(
 					func,
 					token,
-					parameters
+					parameters,
+					isZip
 				);
 				// replace the function handler to the wrapped function
 				this.verboseLog(
@@ -182,6 +184,15 @@ class LumigoPlugin {
 		this.verboseLog(uninstallDetails);
 	}
 
+	async getPythonPluginConfiguration() {
+		const isZip = _.get(
+			this.serverless.service,
+			"custom.pythonRequirements.zip",
+			false
+		);
+
+		return { isZip };
+	}
 	async ensureLumigoPythonIsInstalled() {
 		this.log("checking if lumigo_tracer is installed...");
 
@@ -310,7 +321,7 @@ module.exports.${handlerFuncName} = tracer.trace(handler);
 		return newFilePath.substr(0, newFilePath.lastIndexOf(".") + 1) + handlerFuncName;
 	}
 
-	async createWrappedPythonFunction(func, token, options) {
+	async createWrappedPythonFunction(func, token, options, isZip) {
 		this.verboseLog(`wrapping [${func.handler}]...`);
 
 		const localName = func.localName;
@@ -325,8 +336,17 @@ module.exports.${handlerFuncName} = tracer.trace(handler);
 			.join(".");
 		// e.g. functions/hello.world.handler -> handler
 		const handlerFuncName = handler.substr(handler.lastIndexOf(".") + 1);
-
+		let addZipConstruct = "";
+		if (isZip) {
+			addZipConstruct = `
+try:
+  import unzip_requirements
+except ImportError:
+  pass
+		`;
+		}
 		const wrappedFunction = `
+${addZipConstruct}
 from lumigo_tracer import lumigo_tracer
 from ${handlerModulePath} import ${handlerFuncName} as userHandler
 
