@@ -3,7 +3,7 @@
 [![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com)
 [![version](https://badge.fury.io/js/serverless-lumigo.svg)](https://www.npmjs.com/package/serverless-lumigo)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![CircleCI](https://circleci.com/gh/lumigo-io/serverless-lumigo-plugin.svg?style=svg)](https://circleci.com/gh/lumigo-io/serverless-lumigo-plugin) 
+[![CircleCI](https://circleci.com/gh/lumigo-io/serverless-lumigo-plugin/tree/master.svg?style=svg&circle-token=a136efcbcc581c23e081c4fa171a2d05c6fb8ab3)](https://circleci.com/gh/lumigo-io/serverless-lumigo-plugin/tree/master)
 [![codecov](https://codecov.io/gh/lumigo-io/serverless-lumigo-plugin/branch/master/graph/badge.svg?token=8mXE2G04ZO)](https://codecov.io/gh/lumigo-io/serverless-lumigo-plugin)
 
 Serverless framework plugin to auto-install the Lumigo tracer for Node.js and Python functions.
