@@ -305,8 +305,7 @@ const tracer = require("@lumigo/tracer")({
 });
 const handler = require('../${handlerModulePath}').${handlerFuncName};
 
-module.exports.${handlerFuncName} = tracer.trace(handler);
-    `;
+module.exports.${handlerFuncName} = tracer.trace(handler);`;
 
 		const fileName = localName + ".js";
 		// e.g. hello.world.js -> /Users/username/source/project/_lumigo/hello.world.js
