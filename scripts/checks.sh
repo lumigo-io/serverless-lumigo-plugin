@@ -9,7 +9,7 @@ npm run test
 pushd integration-test/nodejs
 
 sls deploy
-sls invoke -l true -f hello
+sls invoke -l true -f hello| grep "#LUMIGO#"
 
 sls remove
 popd
