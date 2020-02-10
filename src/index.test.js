@@ -57,6 +57,12 @@ beforeEach(() => {
 		pack: {
 			handler: "foo.bar/zoo.handler", // . in file name and / in the path
 			events: []
+		},
+		skippy: {
+			handler: "will.skip",
+			lumigo: {
+				enabled: false
+			}
 		}
 	};
 	serverless.service.custom = {
@@ -118,7 +124,7 @@ describe("Lumigo plugin (node.js)", () => {
 			);
 		});
 
-		test("it should wrap all functions after package initialize", async () => {
+		test("it should wrap all non-skipped functions after package initialize", async () => {
 			await lumigo.afterPackageInitialize();
 			assertNodejsFunctionsAreWrapped();
 		});

@@ -75,5 +75,19 @@ custom:
     enhance_print: true
 ```
 
+### Function Scope Configuration
+You can configure lumigo behavior for individual functions as well - 
+- `enabled` - Allows one to enable or disable lumigo for specific a specific function
+  ```yml
+  functions:
+    foo:
+      lumigo:
+        enabled: false
+  
+    bar:
+      lumigo:
+        enabled: ${self:custom.enabledLumigo}
+  ```
+
 ## How to test
 * Run `npm run test-all`
