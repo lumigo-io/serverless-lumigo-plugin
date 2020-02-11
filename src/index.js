@@ -132,7 +132,7 @@ class LumigoPlugin {
 			.filter(localName => functionNames.includes(localName))
 			.filter(localName => {
 				const { lumigo = {} } = this.serverless.service.getFunction(localName);
-				return typeof lumigo.enabled === "undefined" || lumigo.enabled === true;
+				return lumigo.enabled == undefined || lumigo.enabled === true;
 			})
 			.map(localName => {
 				const x = _.cloneDeep(service.getFunction(localName));
