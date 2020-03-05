@@ -63,8 +63,8 @@ class LumigoPlugin {
 
 		const token = _.get(this.serverless.service, "custom.lumigo.token");
 		const pinVersion = _.get(this.serverless.service, "custom.lumigo.pinVersion");
-		const parameters = _.get(this.serverless.service, "custom.lumigo", {});
-		_.omit(parameters, ["pinVersion"]);
+		let parameters = _.get(this.serverless.service, "custom.lumigo", {});
+		parameters = _.omit(parameters, ["pinVersion"]);
 		if (token === undefined) {
 			throw new this.serverless.classes.Error(
 				"serverless-lumigo: Unable to find token. Please follow https://github.com/lumigo-io/serverless-lumigo"

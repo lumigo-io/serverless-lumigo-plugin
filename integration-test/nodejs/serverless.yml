@@ -5,7 +5,7 @@ custom:
         token: 1234
         nodePackageManager: npm
         edgeHost: test.execute-api.us-west-2.amazonaws.com
-        pinVersion: 1.31.1
+        pinVersion: 1.30.0
 
 
 provider:
