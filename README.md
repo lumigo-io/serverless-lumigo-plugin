@@ -45,6 +45,20 @@ custom:
     nodePackageManager: <npm or yarn>
 ```
 
+In case you want to pin the specific tracer version use `pinVersion` attribute.
+
+For example
+
+```yml
+provider:
+  name: aws
+  runtime: nodejs10.x
+
+custom:
+  lumigo:
+    token: <YOUR TOKEN GOES HERE>
+    pinVersion: 1.31.1
+```
 ## Python functions
 
 For Python functions, we recommend using the [serverless-python-requirements](https://www.npmjs.com/package/serverless-python-requirements) plugin to help you manage your dependencies. You should have the following in your `requirements.txt`:
