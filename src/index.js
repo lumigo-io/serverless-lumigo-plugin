@@ -62,7 +62,9 @@ class LumigoPlugin {
 		}
 
 		const token = _.get(this.serverless.service, "custom.lumigo.token");
+		const pinVersion = _.get(this.serverless.service, "custom.lumigo.pinVersion");
 		const parameters = _.get(this.serverless.service, "custom.lumigo", {});
+		_.omit(parameters, ["pinVersion"]);
 		if (token === undefined) {
 			throw new this.serverless.classes.Error(
 				"serverless-lumigo: Unable to find token. Please follow https://github.com/lumigo-io/serverless-lumigo"
@@ -70,7 +72,7 @@ class LumigoPlugin {
 		}
 
 		if (runtime === "nodejs") {
-			await this.installLumigoNodejs();
+			await this.installLumigoNodejs(pinVersion);
 
 			for (const func of functions) {
 				const handler = await this.createWrappedNodejsFunction(
@@ -150,13 +152,14 @@ class LumigoPlugin {
 		}
 	}
 
-	async installLumigoNodejs() {
-		this.log("installing @lumigo/tracer...");
+	async installLumigoNodejs(pinVersion) {
+		const finalVersion = pinVersion ? pinVersion : "latest";
+		this.log(`installing @lumigo/tracer@${finalVersion}...`);
 		let installCommand;
 		if (this.nodePackageManager === NodePackageManagers.NPM) {
-			installCommand = "npm install --no-save @lumigo/tracer@latest";
+			installCommand = `npm install --no-save @lumigo/tracer@${finalVersion}`;
 		} else if (this.nodePackageManager === NodePackageManagers.Yarn) {
-			installCommand = "yarn add @lumigo/tracer@latest";
+			installCommand = `yarn add @lumigo/tracer@${finalVersion}`;
 		} else {
 			throw new this.serverless.classes.Error(
 				"No Node.js package manager found. Please install either NPM or Yarn."
@@ -197,6 +200,7 @@ class LumigoPlugin {
 
 		return { isZip };
 	}
+
 	async ensureLumigoPythonIsInstalled() {
 		this.log("checking if lumigo_tracer is installed...");
 

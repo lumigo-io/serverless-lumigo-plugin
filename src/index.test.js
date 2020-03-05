@@ -211,6 +211,32 @@ describe("Lumigo plugin (node.js)", () => {
 					"utf8"
 				);
 			});
+
+			test("Pin version", async () => {
+				serverless.service.custom.lumigo.pinVersion = "1.0.3";
+				await lumigo.afterPackageInitialize();
+
+				expect(childProcess.execSync).toBeCalledWith(
+					"yarn add @lumigo/tracer@1.0.3",
+					"utf8"
+				);
+			});
+		});
+
+		describe("when nodePackageManager is NPM", () => {
+			beforeEach(() => {
+				serverless.service.custom.lumigo.nodePackageManager = "npm";
+			});
+
+			test("Pin version", async () => {
+				serverless.service.custom.lumigo.pinVersion = "1.0.3";
+				await lumigo.afterPackageInitialize();
+
+				expect(childProcess.execSync).toBeCalledWith(
+					"npm install --no-save @lumigo/tracer@1.0.3",
+					"utf8"
+				);
+			});
 		});
 
 		describe("when nodePackageManager is not NPM or Yarn", () => {
