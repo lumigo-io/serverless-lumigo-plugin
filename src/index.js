@@ -153,7 +153,7 @@ class LumigoPlugin {
 	}
 
 	async installLumigoNodejs(pinVersion) {
-		const finalVersion = pinVersion ? pinVersion : "latest";
+		const finalVersion = pinVersion || "latest";
 		this.log(`installing @lumigo/tracer@${finalVersion}...`);
 		let installCommand;
 		if (this.nodePackageManager === NodePackageManagers.NPM) {
