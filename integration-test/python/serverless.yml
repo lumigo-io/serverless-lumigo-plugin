@@ -5,6 +5,7 @@ custom:
     token: 1234
     enhance_print: true
     should_report: false
+    skipReqCheck: true
 
 provider:
   name: aws
@@ -13,7 +14,7 @@ provider:
     LUMIGO_DEBUG: "TRUE"
 
 functions:
-  hello:
+  test:
     handler: handler.hello
 
 plugins:

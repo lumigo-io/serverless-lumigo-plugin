@@ -63,8 +63,14 @@ class LumigoPlugin {
 
 		const token = _.get(this.serverless.service, "custom.lumigo.token");
 		const pinVersion = _.get(this.serverless.service, "custom.lumigo.pinVersion");
+		let skipReqCheck = _.get(
+			this.serverless.service,
+			"custom.lumigo.skipReqCheck",
+			false
+		);
+
 		let parameters = _.get(this.serverless.service, "custom.lumigo", {});
-		parameters = _.omit(parameters, ["pinVersion"]);
+		parameters = _.omit(parameters, ["pinVersion", "skipReqCheck"]);
 		if (token === undefined) {
 			throw new this.serverless.classes.Error(
 				"serverless-lumigo: Unable to find token. Please follow https://github.com/lumigo-io/serverless-lumigo"
@@ -87,7 +93,12 @@ class LumigoPlugin {
 				this.serverless.service.functions[func.localName].handler = handler;
 			}
 		} else if (runtime === "python") {
-			await this.ensureLumigoPythonIsInstalled();
+			if (skipReqCheck !== true) {
+				await this.ensureLumigoPythonIsInstalled();
+			} else {
+				this.log("Skipping requirements.txt check");
+			}
+
 			const { isZip } = await this.getPythonPluginConfiguration();
 			this.verboseLog(`Python plugin zip status ${isZip}`);
 			for (const func of functions) {

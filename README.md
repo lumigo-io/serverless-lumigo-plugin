@@ -80,6 +80,15 @@ custom:
     token: <YOUR TOKEN GOES HERE>
 ```
 
+In case you are not using `requirements.txt` to manage your requirements then you can add `skipReqCheck` and set it to `true`
+```yaml
+custom:
+  lumigo:
+    token: 1234
+    skipReqCheck: true
+```
+
+
 ## Configuration
 In order to pass parameters to the tracer, just add them as keys to lumigo custom configuration. For example:
 ```yml
