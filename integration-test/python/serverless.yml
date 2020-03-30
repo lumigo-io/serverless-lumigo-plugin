@@ -5,6 +5,7 @@ custom:
     token: 1234
     enhance_print: true
     should_report: false
+    skipReqCheck: true
 
 provider:
   name: aws

@@ -87,7 +87,12 @@ class LumigoPlugin {
 				this.serverless.service.functions[func.localName].handler = handler;
 			}
 		} else if (runtime === "python") {
-			await this.ensureLumigoPythonIsInstalled();
+			if (
+				_.get(this.serverless.service, "custom.lumigo.skipReqCheck", "false") !==
+				"true"
+			) {
+				await this.ensureLumigoPythonIsInstalled();
+			}
 			const { isZip } = await this.getPythonPluginConfiguration();
 			this.verboseLog(`Python plugin zip status ${isZip}`);
 			for (const func of functions) {
