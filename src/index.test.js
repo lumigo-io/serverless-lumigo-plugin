@@ -387,6 +387,18 @@ lumigo_tracer`);
 			assertPythonFunctionsAreCleanedUp({ token: `'${token}'` });
 		});
 
+		describe("Skipping req.txt check, if it's missing then do not fail", () => {
+			beforeEach(() => {
+				fs.pathExistsSync.mockReturnValue(false);
+				serverless.service.custom.lumigo.skipReqCheck = "true";
+			});
+
+			test("it should not error", async () => {
+				await expect(lumigo.afterPackageInitialize());
+				expect(fs.pathExistsSync).not.toBeCalledWith("requirements.txt");
+			});
+		});
+
 		describe("if there is override file name for requirements.txt (for the serverless-python-requirements plugin)", () => {
 			beforeEach(() => {
 				serverless.service.custom.pythonRequirements = {

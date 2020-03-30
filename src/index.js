@@ -92,6 +92,8 @@ class LumigoPlugin {
 				"true"
 			) {
 				await this.ensureLumigoPythonIsInstalled();
+			} else {
+				this.log("Skipping requirements.txt check");
 			}
 			const { isZip } = await this.getPythonPluginConfiguration();
 			this.verboseLog(`Python plugin zip status ${isZip}`);
