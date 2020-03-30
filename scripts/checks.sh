@@ -12,7 +12,7 @@ sls deploy
 echo "Results"
 sls invoke -l true -f test
 
-echo "\n\nTest"
+echo "Test"
 sls invoke -l true -f test| grep "#LUMIGO#"
 
 sls remove
@@ -30,7 +30,7 @@ npm i
 sls deploy
 echo "Results"
 sls invoke -l true -f test
-echo "\n\nTest"
+echo "Test"
 sls invoke -l true -f test | grep "#LUMIGO#"
 sls remove
 popd
