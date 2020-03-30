@@ -81,12 +81,12 @@ custom:
 ```
 
 ## Configuration
-In order to pass parameters to the tracer, just add them as keys to lumigo custom configuration. For example, in order to add [enhanced print](https://github.com/lumigo-io/python_tracer#enhanced-print) support use:
+In order to pass parameters to the tracer, just add them as keys to lumigo custom configuration. For example:
 ```yml
 custom:
   lumigo:
     token: <YOUR TOKEN GOES HERE>
-    enhance_print: true
+    step_function: true
 ```
 
 ### Function Scope Configuration
