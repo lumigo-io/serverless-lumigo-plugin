@@ -9,7 +9,11 @@ npm run test
 pushd integration-test/nodejs
 
 sls deploy
-sls invoke -l true -f hello| grep "#LUMIGO#"
+echo "Results"
+sls invoke -l true -f test
+
+echo "\n\nTest"
+sls invoke -l true -f test| grep "#LUMIGO#"
 
 sls remove
 popd
@@ -24,6 +28,10 @@ popd
 pushd integration-test/python
 npm i
 sls deploy
-sls invoke -l true -f hello | grep "#LUMIGO#"
+echo "Results"
+sls invoke -l true -f test
+echo "\n\nTest"
+sls invoke -l true -f test | grep "#LUMIGO#"
 sls remove
 popd
+echo "Done"

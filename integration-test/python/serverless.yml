@@ -14,7 +14,7 @@ provider:
     LUMIGO_DEBUG: "TRUE"
 
 functions:
-  hello:
+  test:
     handler: handler.hello
 
 plugins:
