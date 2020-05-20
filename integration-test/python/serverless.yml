@@ -18,5 +18,5 @@ functions:
     handler: handler.hello
 
 plugins:
-  - ./../../../serverless-lumigo-plugin
+  - ./../../src/index
   - serverless-python-requirements

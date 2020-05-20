@@ -100,7 +100,7 @@ describe("Invalid plugin configuration", () => {
 });
 
 describe("Lumigo plugin (node.js)", () => {
-	describe.each([["nodejs8.10"], ["nodejs10.x"]])("when using runtime %s", runtime => {
+	describe.each([["nodejs12.x"], ["nodejs10.x"]])("when using runtime %s", runtime => {
 		beforeEach(() => {
 			serverless.service.provider.runtime = runtime;
 		});
@@ -271,6 +271,30 @@ describe("Lumigo plugin (node.js)", () => {
 				});
 				expect(serverless.service.functions.hello.handler).toBe(
 					"_lumigo/hello.world"
+				);
+			});
+		});
+
+		describe("when skipInstallNodeTracer is true", () => {
+			beforeEach(() => {
+				serverless.service.custom.lumigo.skipInstallNodeTracer = true;
+			});
+
+			test("it should not install Node tracer", async () => {
+				await lumigo.afterPackageInitialize();
+
+				expect(childProcess.execSync).not.toBeCalledWith(
+					"npm install --no-save @lumigo/tracer@latest",
+					"utf8"
+				);
+			});
+
+			test("it should not uninstall Node tracer", async () => {
+				await lumigo.afterCreateDeploymentArtifacts();
+
+				expect(childProcess.execSync).not.toBeCalledWith(
+					"npm uninstall @lumigo/tracer",
+					"utf8"
 				);
 			});
 		});

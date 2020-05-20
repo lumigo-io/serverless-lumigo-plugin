@@ -1,23 +1,22 @@
 service: serverless-plugin-nodejs
 
 custom:
-    lumigo:
-        token: 1234
-        nodePackageManager: npm
-        edgeHost: test.execute-api.us-west-2.amazonaws.com
-        pinVersion: 1.30.0
-
+  lumigo:
+    token: 1234
+    nodePackageManager: npm
+    edgeHost: test.execute-api.us-west-2.amazonaws.com
+    pinVersion: 1.30.0
 
 provider:
-    name: aws
-    runtime: nodejs10.x
-    environment:
-      LUMIGO_TRACER_HOST: "test.execute-api.us-west-2.amazonaws.com"
-      LUMIGO_DEBUG: "TRUE"
+  name: aws
+  runtime: nodejs10.x
+  environment:
+    LUMIGO_TRACER_HOST: "test.execute-api.us-west-2.amazonaws.com"
+    LUMIGO_DEBUG: "TRUE"
 
 functions:
-    test:
-        handler: handler.hello
+  test:
+    handler: handler.hello
 
 plugins:
-    - ./../../../serverless-lumigo-plugin
+  - ./../../src/index

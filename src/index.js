@@ -63,6 +63,11 @@ class LumigoPlugin {
 
 		const token = _.get(this.serverless.service, "custom.lumigo.token");
 		const pinVersion = _.get(this.serverless.service, "custom.lumigo.pinVersion");
+		const skipInstallNodeTracer = _.get(
+			this.serverless.service,
+			"custom.lumigo.skipInstallNodeTracer",
+			false
+		);
 		let skipReqCheck = _.get(
 			this.serverless.service,
 			"custom.lumigo.skipReqCheck",
@@ -70,7 +75,11 @@ class LumigoPlugin {
 		);
 
 		let parameters = _.get(this.serverless.service, "custom.lumigo", {});
-		parameters = _.omit(parameters, ["pinVersion", "skipReqCheck"]);
+		parameters = _.omit(parameters, [
+			"pinVersion",
+			"skipReqCheck",
+			"skipInstallNodeTracer"
+		]);
 		if (token === undefined) {
 			throw new this.serverless.classes.Error(
 				"serverless-lumigo: Unable to find token. Please follow https://github.com/lumigo-io/serverless-lumigo"
@@ -78,7 +87,9 @@ class LumigoPlugin {
 		}
 
 		if (runtime === "nodejs") {
-			await this.installLumigoNodejs(pinVersion);
+			if (!skipInstallNodeTracer) {
+				await this.installLumigoNodejs(pinVersion);
+			}
 
 			for (const func of functions) {
 				const handler = await this.createWrappedNodejsFunction(
@@ -133,7 +144,14 @@ class LumigoPlugin {
 		await this.cleanFolder();
 
 		if (runtime === "nodejs") {
-			await this.uninstallLumigoNodejs();
+			const skipInstallNodeTracer = _.get(
+				this.serverless.service,
+				"custom.lumigo.skipInstallNodeTracer",
+				false
+			);
+			if (!skipInstallNodeTracer) {
+				await this.uninstallLumigoNodejs();
+			}
 		}
 	}
 
@@ -182,10 +200,6 @@ class LumigoPlugin {
 	}
 
 	async uninstallLumigoNodejs() {
-		if (this.isNodeTracerInstalled) {
-			return;
-		}
-
 		this.log("uninstalling @lumigo/tracer...");
 		let uninstallCommand;
 		if (this.nodePackageManager === NodePackageManagers.NPM) {
