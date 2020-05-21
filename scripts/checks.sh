@@ -31,7 +31,7 @@ sls deploy
 echo "Results"
 sls invoke -l true -f test
 echo "Test"
-sls invoke -l true -f test | grep "#LUMIGO#"
+sls invoke -l true -f test | grep "'type': 'function'"
 sls remove
 popd
 echo "Done"
