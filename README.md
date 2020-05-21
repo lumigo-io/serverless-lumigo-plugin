@@ -59,6 +59,20 @@ custom:
     token: <YOUR TOKEN GOES HERE>
     pinVersion: 1.31.1
 ```
+
+In case you want to manage the Lumigo tracer dependency yourself - e.g. you want to use Lerna or Webpack, and can't have this plugin install the Lumigo tracer on your behalf on every deployment - then you can also disable the NPM install process altogether.
+
+```yml
+provider:
+  name: aws
+  runtime: nodejs10.x
+
+custom:
+  lumigo:
+    token: <YOUR TOKEN GOES HERE>
+    skipInstallNodeTracer: true # defaults to false
+```
+
 ## Python functions
 
 For Python functions, we recommend using the [serverless-python-requirements](https://www.npmjs.com/package/serverless-python-requirements) plugin to help you manage your dependencies. You should have the following in your `requirements.txt`:
@@ -88,8 +102,8 @@ custom:
     skipReqCheck: true
 ```
 
-
 ## Configuration
+
 In order to pass parameters to the tracer, just add them as keys to lumigo custom configuration. For example:
 ```yml
 custom:
@@ -99,6 +113,7 @@ custom:
 ```
 
 ### Function Scope Configuration
+
 You can configure lumigo behavior for individual functions as well - 
 - `enabled` - Allows one to enable or disable lumigo for specific a specific function
   ```yml
