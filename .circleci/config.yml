@@ -11,6 +11,7 @@ jobs:
       - run: bash miniconda.sh -b -p $HOME/miniconda
       - run: pushd $HOME/miniconda/bin && ./pip install virtualenv && popd
       - run: echo 'export PATH=$PATH:$HOME/miniconda/bin' >> $BASH_ENV
+      - run: npm i -g serverless
       - run: npm i
       - run: ./scripts/checks.sh
       - run: npm run codecov
