@@ -6,33 +6,34 @@
 [![CircleCI](https://circleci.com/gh/lumigo-io/serverless-lumigo-plugin/tree/master.svg?style=svg&circle-token=a136efcbcc581c23e081c4fa171a2d05c6fb8ab3)](https://circleci.com/gh/lumigo-io/serverless-lumigo-plugin/tree/master)
 [![codecov](https://codecov.io/gh/lumigo-io/serverless-lumigo-plugin/branch/master/graph/badge.svg?token=8mXE2G04ZO)](https://codecov.io/gh/lumigo-io/serverless-lumigo-plugin)
 
-Serverless framework plugin to auto-install the Lumigo tracer for Node.js and Python functions.
+This is a plugin for Serverless Framework. It auto-installs the Lumigo tracer for Node.js and Python Lambda functions.
 
 ## TOC
 
-- [Install](#install)
+- [Installing the plugin](#installing-the-plugin)
 - [Node.js functions](#nodejs-functions)
 - [Python functions](#python-functions)
 - [Configuring the tracer](#configuration)
 
-## Install
+## Installing the plugin
+Install the Lumigo plugin using `npm`:
 
-Run `npm install` in your Serverless project.
+```bash
+$ npm install --save-dev serverless-lumigo
+```
 
-`$ npm install --save-dev serverless-lumigo`
-
-Add the plugin to your serverless.yml file
+Once you've added the plugin, include it in your `serverless.yml` file.
 
 ```yml
 plugins:
   - serverless-lumigo
 ```
 
+You are now ready to work with Lumigo in your serverless functions.
+
 ## Node.js functions
 
-For Node.js functions, the plugin would install the latest version of the Lumigo tracer for Node.js during `serverless package` and `serverless deploy`. It would also wrap your functions as well, so you only need to configure your Lumigo token in a `custom` section inside the `serverless.yml`.
-
-For example:
+For Node.js functions, the plugin will install the latest version of the Lumigo Node.js plugin during the `serverless package` and `serverless deploy` steps. The plugin automatically wraps your Lambda functions in Lumigo's tracer, so you do not need to configure your token on each function - instead, simply add the token to the `custom` section of your `serverless.yml` file:
 
 ```yml
 provider:
@@ -45,9 +46,7 @@ custom:
     nodePackageManager: <npm or yarn>
 ```
 
-In case you want to pin the specific tracer version use `pinVersion` attribute.
-
-For example
+If you want to lock the Lumigo tracer to a specific package version, use the `pinVersion` attribute. When present, the Serverless framework will attempt to import that specific version of the lumigo tracer library.:
 
 ```yml
 provider:
@@ -60,7 +59,7 @@ custom:
     pinVersion: 1.31.1
 ```
 
-In case you want to manage the Lumigo tracer dependency yourself - e.g. you want to use Lerna or Webpack, and can't have this plugin install the Lumigo tracer on your behalf on every deployment - then you can also disable the NPM install process altogether.
+In some cases, such as when working with tools like Lerna or Webpack, you may not want the Serverless plugin to install the Lumigo tracer on your behalf for every deployment. If you encounter this, you can disamle the NPM installation process altogether using the `skipInstallNdoeTracer` configuration setting:
 
 ```yml
 provider:
@@ -75,15 +74,17 @@ custom:
 
 ## Python functions
 
-For Python functions, we recommend using the [serverless-python-requirements](https://www.npmjs.com/package/serverless-python-requirements) plugin to help you manage your dependencies. You should have the following in your `requirements.txt`:
+**Note:** For Python functions, we recommend using the [serverless-python-requirements](https://www.npmjs.com/package/serverless-python-requirements) plugin to help you manage your dependencies. 
+
+Start by adding the following line to your `requirements.txt` file:
 
 ```
 lumigo_tracer
 ```
 
-This installs the Lumigo tracer for Python, and this plugin would wrap your functions during `serverless package` and `serverless deploy`.
+This step installs the Lumigo tracer for Python. The plugin will now automatically wrap your Lambda functions during the `serverless package` and `serverless deploy` steps.
 
-You also need to configure the Lumigo token in a `custom` section in the `serverless.yml`.
+To enable the tracer for your functions, you also need to provide the Lumigo token. This is provided in the section `custom` in your `serverless.yml` file:
 
 ```yml
 provider:
@@ -94,28 +95,29 @@ custom:
     token: <YOUR TOKEN GOES HERE>
 ```
 
-In case you are not using `requirements.txt` to manage your requirements then you can add `skipReqCheck` and set it to `true`
+If you are using a mechanism other than `requirements.txt` to manage your dependencies, then you can disable the plugin's requirements check using the `skipReqCheck` flag as follows:
 ```yaml
 custom:
   lumigo:
-    token: 1234
+    token: <YOUR TOKEN GOES HERE>
     skipReqCheck: true
 ```
 
 ## Configuration
 
-In order to pass parameters to the tracer, just add them as keys to lumigo custom configuration. For example:
+To pass parameters to the tracer, add them as new keys to the `custom` section, underneath the `lumigo` key, in your `serverless.yml` file:
 ```yml
 custom:
   lumigo:
     token: <YOUR TOKEN GOES HERE>
     step_function: true
+    parameter_2: value_2
 ```
 
 ### Function Scope Configuration
 
-You can configure lumigo behavior for individual functions as well - 
-- `enabled` - Allows one to enable or disable lumigo for specific a specific function
+In addition to configuring the lumigo tracer at the library level, you can also configure tracer behavior at the individual function level. You can add a `lumigo` section to the function's definition in `serverless.yml`, then give it the key `enabled: false`. This will disable Lumigo tracing for the function
+
   ```yml
   functions:
     foo:
@@ -128,4 +130,6 @@ You can configure lumigo behavior for individual functions as well -
   ```
 
 ## How to test
-* Run `npm run test-all`
+To test your code locally, make use of our test suite. Simply run the following `npm` command to see the results:
+
+* `npm run test-all`
