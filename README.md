@@ -59,7 +59,7 @@ custom:
     pinVersion: 1.31.1
 ```
 
-In some cases, such as when working with tools like Lerna or Webpack, you may not want the Serverless plugin to install the Lumigo tracer on your behalf for every deployment. If you encounter this, you can disamle the NPM installation process altogether using the `skipInstallNdoeTracer` configuration setting:
+In some cases, such as when working with tools like Lerna or Webpack, you may not want the Serverless plugin to install the Lumigo tracer on your behalf for every deployment. If you encounter this, you can disable the NPM installation process altogether using the `skipInstallNdoeTracer` configuration setting:
 
 ```yml
 provider:
