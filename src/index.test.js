@@ -33,6 +33,7 @@ beforeEach(() => {
 	serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
 	serverless.setProvider("aws", new AwsProvider(serverless));
 	serverless.cli = { log: log };
+	serverless.service.provider.region = "us-east-1";
 	serverless.service.functions = {
 		hello: {
 			handler: "hello.world",
@@ -298,6 +299,82 @@ describe("Lumigo plugin (node.js)", () => {
 				);
 			});
 		});
+
+		describe("when useLayers is true", () => {
+			beforeEach(() => {
+				serverless.service.custom.lumigo.useLayers = true;
+			});
+
+			test("functions are not wrapped during after:package:initialize", async () => {
+				await lumigo.afterPackageInitialize();
+
+				expect(childProcess.execSync).not.toBeCalledWith(
+					"npm install --no-save @lumigo/tracer",
+					"utf8"
+				);
+			});
+
+			test("functions are not wrapped during after:deploy:function:initialize", async () => {
+				await lumigo.afterDeployFunctionInitialize();
+
+				expect(childProcess.execSync).not.toBeCalledWith(
+					"npm install --no-save @lumigo/tracer",
+					"utf8"
+				);
+			});
+
+			test("layers are added during after:package:initialize", async () => {
+				await lumigo.afterPackageInitialize();
+
+				assertNodejsFunctionsHaveLayers();
+			});
+
+			test("layers are added during after:deploy:function:initialize", async () => {
+				options.function = "hello";
+				await lumigo.afterDeployFunctionInitialize();
+
+				const functions = serverless.service.functions;
+				expect(functions.hello.handler).toBe("lumigo-auto-instrument.handler");
+				expect(functions.hello.layers).toHaveLength(1);
+				expect(functions.hello.layers[0]).toEqual(
+					expect.stringMatching(
+						/arn:aws:lambda:us-east-1:114300393969:layer:lumigo-node-tracer:\d*/
+					)
+				);
+				expect(functions.hello.environment).toHaveProperty(
+					"LUMIGO_ORIGINAL_HANDLER"
+				);
+			});
+
+			describe("if pinned to version 87 of layer", () => {
+				beforeEach(() => {
+					serverless.service.custom.lumigo.nodeLayerVersion = 87;
+				});
+
+				test("layer version 87 are added during after:package:initialize", async () => {
+					await lumigo.afterPackageInitialize();
+
+					assertNodejsFunctionsHaveLayers(87);
+				});
+
+				test("layers are added during after:deploy:function:initialize", async () => {
+					options.function = "hello";
+					await lumigo.afterDeployFunctionInitialize();
+
+					const functions = serverless.service.functions;
+					expect(functions.hello.handler).toBe(
+						"lumigo-auto-instrument.handler"
+					);
+					expect(functions.hello.layers).toHaveLength(1);
+					expect(functions.hello.layers[0]).toEqual(
+						"arn:aws:lambda:us-east-1:114300393969:layer:lumigo-node-tracer:87"
+					);
+					expect(functions.hello.environment).toHaveProperty(
+						"LUMIGO_ORIGINAL_HANDLER"
+					);
+				});
+			});
+		});
 	});
 });
 
@@ -321,6 +398,70 @@ describe("Lumigo plugin (python)", () => {
 	describe("python3.7", () => {
 		beforeEach(() => {
 			serverless.service.provider.runtime = "python3.7";
+		});
+
+		describe("when useLayers is true", () => {
+			beforeEach(() => {
+				serverless.service.custom.lumigo.useLayers = true;
+			});
+
+			afterEach(() => {
+				delete serverless.service.custom.lumigo.useLayers;
+			});
+
+			test("layers are added during after:package:initialize", async () => {
+				await lumigo.afterPackageInitialize();
+
+				assertPythonFunctionsHaveLayers();
+			});
+
+			test("layers are added during after:deploy:function:initialize", async () => {
+				options.function = "hello";
+				await lumigo.afterDeployFunctionInitialize();
+
+				const functions = serverless.service.functions;
+				expect(functions.hello.handler).toBe(
+					"/opt/python/lumigo_tracer._handler"
+				);
+				expect(functions.hello.layers).toHaveLength(1);
+				expect(functions.hello.layers[0]).toEqual(
+					expect.stringMatching(
+						/arn:aws:lambda:us-east-1:114300393969:layer:lumigo-python-tracer:\d*/
+					)
+				);
+				expect(functions.hello.environment).toHaveProperty(
+					"LUMIGO_ORIGINAL_HANDLER"
+				);
+			});
+
+			describe("if pinned to version 87 of layer", () => {
+				beforeEach(() => {
+					serverless.service.custom.lumigo.pythonLayerVersion = 87;
+				});
+
+				test("layer version 87 are added during after:package:initialize", async () => {
+					await lumigo.afterPackageInitialize();
+
+					assertPythonFunctionsHaveLayers(87);
+				});
+
+				test("layers are added during after:deploy:function:initialize", async () => {
+					options.function = "hello";
+					await lumigo.afterDeployFunctionInitialize();
+
+					const functions = serverless.service.functions;
+					expect(functions.hello.handler).toBe(
+						"/opt/python/lumigo_tracer._handler"
+					);
+					expect(functions.hello.layers).toHaveLength(1);
+					expect(functions.hello.layers[0]).toEqual(
+						"arn:aws:lambda:us-east-1:114300393969:layer:lumigo-python-tracer:87"
+					);
+					expect(functions.hello.environment).toHaveProperty(
+						"LUMIGO_ORIGINAL_HANDLER"
+					);
+				});
+			});
 		});
 
 		describe("Using zip configuration", () => {
@@ -605,6 +746,42 @@ function assertTracerInstall() {
 	);
 }
 
+function assertNodejsFunctionsHaveLayers(version) {
+	const functions = serverless.service.functions;
+	const wrappedFunctions = [
+		functions.hello,
+		functions["hello.world"],
+		functions.foo,
+		functions.bar,
+		functions.jet,
+		functions.pack
+	];
+	const skippedFunctions = [functions.skippy];
+
+	wrappedFunctions.forEach(func => {
+		expect(func.handler).toBe("lumigo-auto-instrument.handler");
+		expect(func.layers).toHaveLength(1);
+		if (version) {
+			expect(func.layers[0]).toEqual(
+				`arn:aws:lambda:us-east-1:114300393969:layer:lumigo-node-tracer:${version}`
+			);
+		} else {
+			expect(func.layers[0]).toEqual(
+				expect.stringMatching(
+					/arn:aws:lambda:us-east-1:114300393969:layer:lumigo-node-tracer:\d*/
+				)
+			);
+		}
+		expect(func.environment).toHaveProperty("LUMIGO_ORIGINAL_HANDLER");
+	});
+
+	skippedFunctions.forEach(func => {
+		expect(func.handler).not.toBe("lumigo-auto-instrument.handler");
+		expect(func.layers).toBeUndefined();
+		expect(func.environment).toBeUndefined();
+	});
+}
+
 function assertNodejsFunctionsAreWrapped() {
 	assertTracerInstall();
 
@@ -628,6 +805,42 @@ function assertNodejsFunctionsAreWrapped() {
 	expect(functions.bar.handler).toBe("_lumigo/bar.handler");
 	expect(functions.jet.handler).toBe("_lumigo/jet.handler");
 	expect(functions.pack.handler).toBe("_lumigo/pack.handler");
+}
+
+function assertPythonFunctionsHaveLayers(version) {
+	const functions = serverless.service.functions;
+	const wrappedFunctions = [
+		functions.hello,
+		functions["hello.world"],
+		functions.foo,
+		functions.bar,
+		functions.jet,
+		functions.pack
+	];
+	const skippedFunctions = [functions.skippy];
+
+	wrappedFunctions.forEach(func => {
+		expect(func.handler).toBe("/opt/python/lumigo_tracer._handler");
+		expect(func.layers).toHaveLength(1);
+		if (version) {
+			expect(func.layers[0]).toEqual(
+				`arn:aws:lambda:us-east-1:114300393969:layer:lumigo-python-tracer:${version}`
+			);
+		} else {
+			expect(func.layers[0]).toEqual(
+				expect.stringMatching(
+					/arn:aws:lambda:us-east-1:114300393969:layer:lumigo-python-tracer:\d*/
+				)
+			);
+		}
+		expect(func.environment).toHaveProperty("LUMIGO_ORIGINAL_HANDLER");
+	});
+
+	skippedFunctions.forEach(func => {
+		expect(func.handler).not.toBe("/opt/python/lumigo_tracer._handler");
+		expect(func.layers).toBeUndefined();
+		expect(func.environment).toBeUndefined();
+	});
 }
 
 function assertPythonFunctionsAreWrapped(parameters) {

@@ -1,12 +1,23 @@
 const _ = require("lodash");
+const http = require("axios");
 const fs = require("fs-extra");
 const BbPromise = require("bluebird");
 const childProcess = BbPromise.promisifyAll(require("child_process"));
 const path = require("path");
 
+const nodeLayerVersionsUrl =
+	"https://raw.githubusercontent.com/lumigo-io/lumigo-node/master/layers/LAYERS12x.md";
+const pythonLayerVersionsUrl =
+	"https://raw.githubusercontent.com/lumigo-io/python_tracer/master/layers/LAYERS37.md";
+
 const NodePackageManagers = {
 	NPM: "npm",
 	Yarn: "yarn"
+};
+
+const LayerArns = {
+	node: null,
+	python: null
 };
 
 class LumigoPlugin {
@@ -20,6 +31,7 @@ class LumigoPlugin {
 			}
 		};
 		this.folderPath = path.join(this.serverless.config.servicePath, "_lumigo");
+		this.token = _.get(this.serverless.service, "custom.lumigo.token");
 
 		this.hooks = {
 			"after:package:initialize": this.afterPackageInitialize.bind(this),
@@ -40,12 +52,67 @@ class LumigoPlugin {
 		).toLowerCase();
 	}
 
+	get useLayers() {
+		return _.get(this.serverless.service, "custom.lumigo.useLayers", false);
+	}
+
+	get pinnedNodeLayerVersion() {
+		return _.get(this.serverless.service, "custom.lumigo.nodeLayerVersion", null);
+	}
+
+	get pinnedPythonLayerVersion() {
+		return _.get(this.serverless.service, "custom.lumigo.pythonLayerVersion", null);
+	}
+
 	async afterDeployFunctionInitialize() {
 		await this.wrapFunctions([this.options.function]);
 	}
 
 	async afterPackageInitialize() {
 		await this.wrapFunctions();
+	}
+
+	async getLatestNodeLayerVersionArn(layerArn) {
+		const resp = await http.get(nodeLayerVersionsUrl);
+		const pattern = `${layerArn}:(\\d*)`;
+		const regex = new RegExp(pattern, "gm");
+		const matches = regex.exec(resp.data);
+		return matches[0];
+	}
+
+	async getLatestPythonLayerVersionArn(layerArn) {
+		const resp = await http.get(pythonLayerVersionsUrl);
+		const pattern = `${layerArn}:(\\d*)`;
+		const regex = new RegExp(pattern, "gm");
+		const matches = regex.exec(resp.data);
+		return matches[0];
+	}
+
+	async getLayerArn(runtime) {
+		const region = this.serverless.service.provider.region;
+		if (runtime.startsWith("nodejs")) {
+			if (this.pinnedNodeLayerVersion) {
+				return `arn:aws:lambda:${region}:114300393969:layer:lumigo-node-tracer:${this.pinnedNodeLayerVersion}`;
+			} else if (LayerArns.node) {
+				return LayerArns.node;
+			} else {
+				const nodeLayerArn = `arn:aws:lambda:${region}:114300393969:layer:lumigo-node-tracer`;
+				LayerArns.node = await this.getLatestNodeLayerVersionArn(nodeLayerArn);
+				return LayerArns.node;
+			}
+		} else if (runtime.startsWith("python")) {
+			if (this.pinnedPythonLayerVersion) {
+				return `arn:aws:lambda:${region}:114300393969:layer:lumigo-python-tracer:${this.pinnedPythonLayerVersion}`;
+			} else if (LayerArns.python) {
+				return LayerArns.python;
+			} else {
+				const pythonLayerArn = `arn:aws:lambda:${region}:114300393969:layer:lumigo-python-tracer`;
+				LayerArns.python = await this.getLatestPythonLayerVersionArn(
+					pythonLayerArn
+				);
+				return LayerArns.python;
+			}
+		}
 	}
 
 	async wrapFunctions(functionNames) {
@@ -62,79 +129,108 @@ class LumigoPlugin {
 		}
 
 		const token = _.get(this.serverless.service, "custom.lumigo.token");
-		const pinVersion = _.get(this.serverless.service, "custom.lumigo.pinVersion");
-		const skipInstallNodeTracer = _.get(
-			this.serverless.service,
-			"custom.lumigo.skipInstallNodeTracer",
-			false
-		);
-		let skipReqCheck = _.get(
-			this.serverless.service,
-			"custom.lumigo.skipReqCheck",
-			false
-		);
-
-		let parameters = _.get(this.serverless.service, "custom.lumigo", {});
-		parameters = _.omit(parameters, [
-			"pinVersion",
-			"skipReqCheck",
-			"skipInstallNodeTracer"
-		]);
-		if (token === undefined) {
+		if (!token) {
 			throw new this.serverless.classes.Error(
 				"serverless-lumigo: Unable to find token. Please follow https://github.com/lumigo-io/serverless-lumigo"
 			);
 		}
 
-		if (runtime === "nodejs") {
-			if (!skipInstallNodeTracer) {
-				await this.installLumigoNodejs(pinVersion);
-			}
-
+		if (this.useLayers) {
 			for (const func of functions) {
-				const handler = await this.createWrappedNodejsFunction(
-					func,
-					token,
-					parameters
-				);
+				const funcRuntime = func.runtime || runtime;
+				func.layers = func.layers || [];
+				const layer = await this.getLayerArn(funcRuntime);
+				func.layers.push(layer);
+				func.environment = func.environment || {};
+				func.environment["LUMIGO_ORIGINAL_HANDLER"] = func.handler;
+
+				if (funcRuntime.startsWith("nodejs")) {
+					func.handler = "lumigo-auto-instrument.handler";
+				} else if (funcRuntime.startsWith("python")) {
+					func.handler = "/opt/python/lumigo_tracer._handler";
+				}
+
 				// replace the function handler to the wrapped function
-				this.verboseLog(
-					`setting [${func.localName}]'s handler to [${handler}]...`
-				);
-				this.serverless.service.functions[func.localName].handler = handler;
+				this.verboseLog(`adding Lumigo tracer layer to [${func.localName}]...`);
+				this.serverless.service.functions[func.localName].handler = func.handler;
+				this.serverless.service.functions[func.localName].environment =
+					func.environment;
+				this.serverless.service.functions[func.localName].layers = func.layers;
 			}
-		} else if (runtime === "python") {
-			if (skipReqCheck !== true) {
-				await this.ensureLumigoPythonIsInstalled();
-			} else {
-				this.log("Skipping requirements.txt check");
+		} else {
+			const pinVersion = _.get(this.serverless.service, "custom.lumigo.pinVersion");
+			const skipInstallNodeTracer = _.get(
+				this.serverless.service,
+				"custom.lumigo.skipInstallNodeTracer",
+				false
+			);
+			let skipReqCheck = _.get(
+				this.serverless.service,
+				"custom.lumigo.skipReqCheck",
+				false
+			);
+
+			let parameters = _.get(this.serverless.service, "custom.lumigo", {});
+			parameters = _.omit(parameters, [
+				"pinVersion",
+				"skipReqCheck",
+				"skipInstallNodeTracer"
+			]);
+
+			if (runtime === "nodejs") {
+				if (!skipInstallNodeTracer) {
+					await this.installLumigoNodejs(pinVersion);
+				}
+
+				for (const func of functions) {
+					const handler = await this.createWrappedNodejsFunction(
+						func,
+						token,
+						parameters
+					);
+					// replace the function handler to the wrapped function
+					this.verboseLog(
+						`setting [${func.localName}]'s handler to [${handler}]...`
+					);
+					this.serverless.service.functions[func.localName].handler = handler;
+				}
+			} else if (runtime === "python") {
+				if (skipReqCheck !== true) {
+					await this.ensureLumigoPythonIsInstalled();
+				} else {
+					this.log("Skipping requirements.txt check");
+				}
+
+				const { isZip } = await this.getPythonPluginConfiguration();
+				this.verboseLog(`Python plugin zip status ${isZip}`);
+				for (const func of functions) {
+					const handler = await this.createWrappedPythonFunction(
+						func,
+						token,
+						parameters,
+						isZip
+					);
+					// replace the function handler to the wrapped function
+					this.verboseLog(
+						`setting [${func.localName}]'s handler to [${handler}]...`
+					);
+					this.serverless.service.functions[func.localName].handler = handler;
+				}
 			}
 
-			const { isZip } = await this.getPythonPluginConfiguration();
-			this.verboseLog(`Python plugin zip status ${isZip}`);
-			for (const func of functions) {
-				const handler = await this.createWrappedPythonFunction(
-					func,
-					token,
-					parameters,
-					isZip
-				);
-				// replace the function handler to the wrapped function
-				this.verboseLog(
-					`setting [${func.localName}]'s handler to [${handler}]...`
-				);
-				this.serverless.service.functions[func.localName].handler = handler;
+			if (this.serverless.service.package) {
+				const include = this.serverless.service.package.include || [];
+				include.push("_lumigo/*");
+				this.serverless.service.package.include = include;
 			}
-		}
-
-		if (this.serverless.service.package) {
-			const include = this.serverless.service.package.include || [];
-			include.push("_lumigo/*");
-			this.serverless.service.package.include = include;
 		}
 	}
 
 	async afterCreateDeploymentArtifacts() {
+		if (this.useLayers) {
+			return;
+		}
+
 		const { runtime, functions } = this.getFunctionsToWrap(this.serverless.service);
 
 		if (functions.length === 0) {
