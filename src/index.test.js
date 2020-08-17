@@ -426,7 +426,7 @@ describe("Lumigo plugin (python)", () => {
 				expect(functions.hello.layers).toHaveLength(1);
 				expect(functions.hello.layers[0]).toEqual(
 					expect.stringMatching(
-						/arn:aws:lambda:us-east-1:114300393969:layer:lumigo-python-tracer:\d*/
+						/arn:aws:lambda:us-east-1:114300393969:layer:lumigo-python-tracer:\d+/
 					)
 				);
 				expect(functions.hello.environment).toHaveProperty(
@@ -768,7 +768,7 @@ function assertNodejsFunctionsHaveLayers(version) {
 		} else {
 			expect(func.layers[0]).toEqual(
 				expect.stringMatching(
-					/arn:aws:lambda:us-east-1:114300393969:layer:lumigo-node-tracer:\d*/
+					/arn:aws:lambda:us-east-1:114300393969:layer:lumigo-node-tracer:\d+/
 				)
 			);
 		}

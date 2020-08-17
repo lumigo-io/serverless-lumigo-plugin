@@ -31,7 +31,6 @@ class LumigoPlugin {
 			}
 		};
 		this.folderPath = path.join(this.serverless.config.servicePath, "_lumigo");
-		this.token = _.get(this.serverless.service, "custom.lumigo.token");
 
 		this.hooks = {
 			"after:package:initialize": this.afterPackageInitialize.bind(this),
@@ -74,7 +73,7 @@ class LumigoPlugin {
 
 	async getLatestNodeLayerVersionArn(layerArn) {
 		const resp = await http.get(nodeLayerVersionsUrl);
-		const pattern = `${layerArn}:(\\d*)`;
+		const pattern = `${layerArn}:\\d+`;
 		const regex = new RegExp(pattern, "gm");
 		const matches = regex.exec(resp.data);
 		return matches[0];
@@ -82,7 +81,7 @@ class LumigoPlugin {
 
 	async getLatestPythonLayerVersionArn(layerArn) {
 		const resp = await http.get(pythonLayerVersionsUrl);
-		const pattern = `${layerArn}:(\\d*)`;
+		const pattern = `${layerArn}:\\d+`;
 		const regex = new RegExp(pattern, "gm");
 		const matches = regex.exec(resp.data);
 		return matches[0];
@@ -143,6 +142,7 @@ class LumigoPlugin {
 				func.layers.push(layer);
 				func.environment = func.environment || {};
 				func.environment["LUMIGO_ORIGINAL_HANDLER"] = func.handler;
+				func.environment["LUMIGO_TRACER_TOKEN"] = token;
 
 				if (funcRuntime.startsWith("nodejs")) {
 					func.handler = "lumigo-auto-instrument.handler";
