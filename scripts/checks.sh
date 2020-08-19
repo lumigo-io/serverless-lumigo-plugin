@@ -19,11 +19,9 @@ sls remove
 popd
 
 
-pushd integration-test
-rm -rf venv || true
-python3 -m venv venv
-. venv/bin/activate
-popd
+. $HOME/miniconda/bin/activate
+conda create -n myvenv python=3.7 -y
+conda activate myvenv
 
 pushd integration-test/python
 npm i
