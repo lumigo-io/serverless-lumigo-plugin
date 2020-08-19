@@ -21,7 +21,7 @@ popd
 
 pushd integration-test
 rm -rf venv || true
-virtualenv venv -p python3
+python3 -m venv venv
 . venv/bin/activate
 popd
 
