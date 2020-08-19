@@ -17,6 +17,9 @@ functions:
   test:
     handler: handler.hello
 
+  test-with-numbers:
+    handler: 01_handler_with_numbers.hello
+
 plugins:
   - ./../../src/index
   - serverless-python-requirements

@@ -21,7 +21,7 @@ popd
 
 pushd integration-test
 rm -rf venv || true
-virtualenv venv -p python3
+virtualenv venv -p python3.7
 . venv/bin/activate
 popd
 
@@ -32,6 +32,12 @@ echo "Results"
 sls invoke -l true -f test
 echo "Test"
 sls invoke -l true -f test | grep "'type': 'function'"
+
+echo "Results with numbers"
+sls invoke -l true -f test-with-numbers
+echo "Test with numbers"
+sls invoke -l true -f test-with-numbers | grep "'type': 'function'"
+
 sls remove
 popd
 echo "Done"
