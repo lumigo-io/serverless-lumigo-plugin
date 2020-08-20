@@ -12,6 +12,7 @@ jobs:
       - run: pushd $HOME/miniconda/bin && ./pip install virtualenv && popd
       - run: echo 'export PATH=$PATH:$HOME/miniconda/bin' >> $BASH_ENV
       - run: conda install python==3.7
+      - run: conda install virtualenv
       - run: npm ci
       - run: npm run test:all
       - run: npm run codecov
