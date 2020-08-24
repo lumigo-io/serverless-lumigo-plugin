@@ -45,6 +45,7 @@
     },
     "homepage": "https://github.com/lumigo-io/serverless-lumigo#readme",
     "dependencies": {
+        "axios": "^0.19.2",
         "bluebird": "^3.5.5",
         "fs-extra": "^8.1.0",
         "lodash": "^4.17.14"
@@ -52,6 +53,7 @@
     "devDependencies": {
         "@commitlint/cli": "^8.1.0",
         "@commitlint/config-conventional": "^8.0.0",
+        "@types/jest": "^26.0.10",
         "codecov": "^3.5.0",
         "coveralls": "^3.0.2",
         "eslint": "^5.13.0",

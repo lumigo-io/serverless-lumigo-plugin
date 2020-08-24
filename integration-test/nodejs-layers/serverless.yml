@@ -1,0 +1,20 @@
+service: serverless-plugin-nodejs-layers
+
+custom:
+  lumigo:
+    token: 1234
+    useLayers: true
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  environment:
+    LUMIGO_TRACER_HOST: "test.execute-api.us-west-2.amazonaws.com"
+    LUMIGO_DEBUG: "TRUE"
+
+functions:
+  test:
+    handler: handler.hello
+
+plugins:
+  - ./../../src/index
