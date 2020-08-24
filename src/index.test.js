@@ -130,7 +130,7 @@ describe("Lumigo plugin (node.js)", () => {
 			assertNodejsFunctionsAreWrapped();
 		});
 
-		test("it should clean up after deployment artefact is created", async () => {
+		test("it should clean up after deployment artifact is created", async () => {
 			await lumigo.afterCreateDeploymentArtifacts();
 			assertNodejsFunctionsAreCleanedUp();
 		});
@@ -145,7 +145,7 @@ describe("Lumigo plugin (node.js)", () => {
 				assertFunctionsAreNotWrapped();
 			});
 
-			test("it does nothing after deployment artefact is created", async () => {
+			test("it does nothing after deployment artifact is created", async () => {
 				await lumigo.afterCreateDeploymentArtifacts();
 				assertNothingHappens();
 			});
@@ -389,7 +389,7 @@ describe("Lumigo plugin (python)", () => {
 			assertFunctionsAreNotWrapped();
 		});
 
-		test("it does nothing after deployment artefact is created", async () => {
+		test("it does nothing after deployment artifact is created", async () => {
 			await lumigo.afterCreateDeploymentArtifacts();
 			assertNothingHappens();
 		});
@@ -490,7 +490,7 @@ lumigo_tracer`);
 						"except ImportError:",
 						"pass",
 						"from lumigo_tracer import lumigo_tracer",
-						"from hello import world as userHandler"
+						getPythonImportLine("hello", "world")
 					)
 				);
 			});
@@ -506,7 +506,7 @@ lumigo_tracer`);
 				assertFunctionsAreNotWrapped();
 			});
 
-			test("it does nothing after deployment artefact is created", async () => {
+			test("it does nothing after deployment artifact is created", async () => {
 				await lumigo.afterCreateDeploymentArtifacts();
 				assertNothingHappens();
 			});
@@ -547,7 +547,7 @@ lumigo_tracer`);
 			});
 		});
 
-		test("it should clean up after deployment artefact is created", async () => {
+		test("it should clean up after deployment artifact is created", async () => {
 			await lumigo.afterCreateDeploymentArtifacts();
 			assertPythonFunctionsAreCleanedUp({ token: `'${token}'` });
 		});
@@ -722,7 +722,7 @@ describe("is not nodejs or python", () => {
 		assertFunctionsAreNotWrapped();
 	});
 
-	test("it does nothing after deployment artefact is created", async () => {
+	test("it does nothing after deployment artifact is created", async () => {
 		await lumigo.afterCreateDeploymentArtifacts();
 		assertNothingHappens();
 	});
@@ -843,6 +843,10 @@ function assertPythonFunctionsHaveLayers(version) {
 	});
 }
 
+function getPythonImportLine(handlerModulePath, handlerFuncName) {
+	return `userHandler = getattr(importlib.import_module("${handlerModulePath}"), "${handlerFuncName}")`;
+}
+
 function assertPythonFunctionsAreWrapped(parameters) {
 	let endParams = [];
 	for (const [key, value] of Object.entries(parameters)) {
@@ -853,7 +857,7 @@ function assertPythonFunctionsAreWrapped(parameters) {
 		__dirname + "/_lumigo/hello.py",
 		expect.toContainAllStrings(
 			"from lumigo_tracer import lumigo_tracer",
-			"from hello import world as userHandler",
+			getPythonImportLine("hello", "world"),
 			`@lumigo_tracer(${endParams.join(",")})`
 		)
 	);
@@ -861,7 +865,7 @@ function assertPythonFunctionsAreWrapped(parameters) {
 		__dirname + "/_lumigo/hello.world.py",
 		expect.toContainAllStrings(
 			"from lumigo_tracer import lumigo_tracer",
-			"from hello.world import handler as userHandler",
+			getPythonImportLine("hello.world", "handler"),
 			`@lumigo_tracer(${endParams.join(",")})`
 		)
 	);
@@ -869,7 +873,7 @@ function assertPythonFunctionsAreWrapped(parameters) {
 		__dirname + "/_lumigo/foo.py",
 		expect.toContainAllStrings(
 			"from lumigo_tracer import lumigo_tracer",
-			"from foo_bar import handler as userHandler",
+			getPythonImportLine("foo_bar", "handler"),
 			`@lumigo_tracer(${endParams.join(",")})`
 		)
 	);
@@ -877,7 +881,7 @@ function assertPythonFunctionsAreWrapped(parameters) {
 		__dirname + "/_lumigo/bar.py",
 		expect.toContainAllStrings(
 			"from lumigo_tracer import lumigo_tracer",
-			"from foo_bar import handler as userHandler",
+			getPythonImportLine("foo_bar", "handler"),
 			`@lumigo_tracer(${endParams.join(",")})`
 		)
 	);
@@ -885,7 +889,7 @@ function assertPythonFunctionsAreWrapped(parameters) {
 		__dirname + "/_lumigo/jet.py",
 		expect.toContainAllStrings(
 			"from lumigo_tracer import lumigo_tracer",
-			"from foo.foo.bar import handler as userHandler",
+			getPythonImportLine("foo.foo.bar", "handler"),
 			`@lumigo_tracer(${endParams.join(",")})`
 		)
 	);
@@ -893,7 +897,7 @@ function assertPythonFunctionsAreWrapped(parameters) {
 		__dirname + "/_lumigo/pack.py",
 		expect.toContainAllStrings(
 			"from lumigo_tracer import lumigo_tracer",
-			"from foo.bar.zoo import handler as userHandler",
+			getPythonImportLine("foo.bar.zoo", "handler"),
 			`@lumigo_tracer(${endParams.join(",")})`
 		)
 	);

@@ -475,8 +475,9 @@ except ImportError:
 		}
 		const wrappedFunction = `
 ${addZipConstruct}
+import importlib
 from lumigo_tracer import lumigo_tracer
-from ${handlerModulePath} import ${handlerFuncName} as userHandler
+userHandler = getattr(importlib.import_module("${handlerModulePath}"), "${handlerFuncName}")
 
 @lumigo_tracer(${this.getPythonTracerParameters(token, options)})
 def ${handlerFuncName}(event, context):
