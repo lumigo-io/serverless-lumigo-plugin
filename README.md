@@ -28,34 +28,6 @@ plugins:
   - serverless-lumigo
 ```
 
-### Using Lambda Layers
-
-Going forward, this plugin will work the same as the `Auto-Trace` option in the Lumigo dashboard. This has somes advantage because the plugin doesn't need to modify your upload artifact:
-
-- your upload artifact is smaller in size
-- it doesn't interfere with other plugins such as Webpack
-
-For now, this feature has to be **explicitly opted-in**.
-
-To do so, set `useLayers` to `true` (under `custom.lumigo`).
-
-By default, the plugin would use the latest version of the node/python tracer layer in your region. But you can override that by adding a `nodeLayerVersion` or `pythonLayerVersion` attribute.
-
-For example:
-
-```yml
-provider:
-  name: aws
-  runtime: nodejs12.x
-
-custom:
-  lumigo:
-    token: <YOUR TOKEN GOES HERE>
-    useLayers: true
-    nodeLayerVersion: <OPTIONAL>
-    pythonLayerVersion: <OPTIONAL>
-```
-
 ## Node.js functions
 
 For Node.js functions, the plugin would install the latest version of the Lumigo tracer for Node.js during `serverless package` and `serverless deploy`. It would also wrap your functions as well, so you only need to configure your Lumigo token in a `custom` section inside the `serverless.yml`.
