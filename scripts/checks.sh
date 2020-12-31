@@ -7,7 +7,6 @@ npm run prettier:ci
 npm run test
 
 pushd integration-test/nodejs
-
 sls deploy
 echo "Results"
 sls invoke -l true -f test
