@@ -14,9 +14,9 @@ provider:
     LUMIGO_TRACER_HOST: "test.execute-api.us-west-2.amazonaws.com"
     LUMIGO_DEBUG: "TRUE"
 
-#functions:
-#  test:
-#    handler: handler.hello
+functions:
+  test:
+    handler: handler.hello
 
 plugins:
   - ./../../src/index
