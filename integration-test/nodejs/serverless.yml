@@ -2,7 +2,7 @@ service: serverless-plugin-nodejs
 
 custom:
   lumigo:
-    token: 1234
+    token: t_b9222642efc14985baaed
     nodePackageManager: npm
     edgeHost: test.execute-api.us-west-2.amazonaws.com
     pinVersion: 1.30.0

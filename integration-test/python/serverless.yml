@@ -2,9 +2,7 @@ service: serverless-plugin-python
 
 custom:
   lumigo:
-    token: 1234
-    enhance_print: true
-    should_report: false
+    token: t_b9222642efc14985baaed
     skipReqCheck: true
 
 provider:
@@ -12,6 +10,7 @@ provider:
   runtime: python3.7
   environment:
     LUMIGO_DEBUG: "TRUE"
+    LUMIGO_TRACER_HOST: "test.execute-api.us-west-2.amazonaws.com"
 
 functions:
   test:
