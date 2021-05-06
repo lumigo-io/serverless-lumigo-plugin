@@ -8,7 +8,7 @@ npm run test
 
 pushd integration-test/nodejs
 
-sls deploy
+sls deploy --force
 echo "Results"
 sls invoke -l true -f test
 
@@ -18,18 +18,6 @@ sls invoke -l true -f test | grep "#LUMIGO#"
 sls remove
 popd
 
-pushd integration-test/nodejs-layers
-
-sls deploy
-
-echo "Results"
-sls invoke -l true -f test
-
-echo "Test"
-sls invoke -l true -f test | grep "#LUMIGO#"
-
-sls remove
-popd
 
 pushd integration-test
 rm -rf venv || true
@@ -39,27 +27,17 @@ popd
 
 pushd integration-test/python
 npm i
-sls deploy
-echo "Results"
-sls invoke -l true -f test
-echo "Test"
-sls invoke -l true -f test | grep "'type': 'function'"
+sls deploy --force
+echo "Invoking test"
+echo
+sls invoke -l true -f test | grep "#LUMIGO#"
 
-echo "Results with numbers"
-sls invoke -l true -f test-with-numbers
-echo "Test with numbers"
-sls invoke -l true -f test-with-numbers | grep "'type': 'function'"
+sls invoke -f test-with-numbers
+echo "Invoking with numbers"
+echo 
+sls invoke -f test-with-numbers
+sls invoke -l true -f test | grep "#LUMIGO#"
 
-sls remove
-popd
-
-pushd integration-test/python-layers
-npm i
-sls deploy
-echo "Results"
-sls invoke -l true -f test
-echo "Test"
-sls invoke -l true -f test | grep "'type': 'function'"
 sls remove
 popd
 
