@@ -45,7 +45,7 @@
     },
     "homepage": "https://github.com/lumigo-io/serverless-lumigo#readme",
     "dependencies": {
-        "axios": "^0.19.2",
+        "axios": "^0.21.1",
         "bluebird": "^3.5.5",
         "fs-extra": "^8.1.0",
         "lodash": "^4.17.14"
