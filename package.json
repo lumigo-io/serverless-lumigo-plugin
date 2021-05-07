@@ -45,7 +45,7 @@
     },
     "homepage": "https://github.com/lumigo-io/serverless-lumigo#readme",
     "dependencies": {
-        "axios": "^0.19.2",
+        "axios": "^0.21.1",
         "bluebird": "^3.5.5",
         "fs-extra": "^8.1.0",
         "lodash": "^4.17.14"
@@ -67,7 +67,7 @@
         "jest": "^24.8.0",
         "lint-staged": "^9.1.0",
         "prettier": "^1.18.2",
-        "semantic-release": "^15.13.18",
+        "semantic-release": "^17.2.3",
         "serverless": "^1.46.1"
     },
     "prettier": {

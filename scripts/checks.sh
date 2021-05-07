@@ -8,59 +8,51 @@ npm run test
 
 pushd integration-test/nodejs
 
-sls deploy
-echo "Results"
-sls invoke -l true -f test
+random=$RANDOM
 
-echo "Test"
-sls invoke -l true -f test | grep "#LUMIGO#"
+echo "** Testing NodeJS **"
+echo "********************"
+echo
+echo
 
-sls remove
+echo "** Deploying **"
+echo
+sls deploy --force --stage $random
+
+echo "** Testing **"
+echo
+sls invoke -l true -f test --stage $random | grep "#LUMIGO#"
+
+echo "** Removing stack **"
+echo
+sls remove --stage $random
 popd
 
-pushd integration-test/nodejs-layers
-
-sls deploy
-
-echo "Results"
-sls invoke -l true -f test
-
-echo "Test"
-sls invoke -l true -f test | grep "#LUMIGO#"
-
-sls remove
-popd
-
+echo "** Testing Python **"
+echo "********************"
+echo
+echo
 pushd integration-test
 rm -rf venv || true
 virtualenv venv -p python3.7
 . venv/bin/activate
 popd
 
+echo "** Deploying **"
+echo
 pushd integration-test/python
 npm i
-sls deploy
-echo "Results"
-sls invoke -l true -f test
-echo "Test"
-sls invoke -l true -f test | grep "'type': 'function'"
+sls deploy --force --stage $random
+echo "** Testing #1 **"
+echo
+sls invoke -l true -f test --stage $random | grep "#LUMIGO#"
 
-echo "Results with numbers"
-sls invoke -l true -f test-with-numbers
-echo "Test with numbers"
-sls invoke -l true -f test-with-numbers | grep "'type': 'function'"
-
-sls remove
+echo "** Testing #2 **"
+echo 
+sls invoke -l true -f test --stage $random | grep "#LUMIGO#"
+echo "** Removing stack **"
+echo
+sls remove --stage $random
 popd
 
-pushd integration-test/python-layers
-npm i
-sls deploy
-echo "Results"
-sls invoke -l true -f test
-echo "Test"
-sls invoke -l true -f test | grep "'type': 'function'"
-sls remove
-popd
-
-echo "Done"
+echo "** Success **"
