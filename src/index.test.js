@@ -234,7 +234,7 @@ describe("Lumigo plugin (node.js)", () => {
 				await lumigo.afterPackageInitialize();
 
 				expect(childProcess.execSync).toBeCalledWith(
-					"npm install --no-save @lumigo/tracer@1.0.3",
+					"npm install @lumigo/tracer@1.0.3",
 					"utf8"
 				);
 			});
@@ -285,7 +285,7 @@ describe("Lumigo plugin (node.js)", () => {
 				await lumigo.afterPackageInitialize();
 
 				expect(childProcess.execSync).not.toBeCalledWith(
-					"npm install --no-save @lumigo/tracer@latest",
+					"npm install @lumigo/tracer@latest",
 					"utf8"
 				);
 			});
@@ -309,7 +309,7 @@ describe("Lumigo plugin (node.js)", () => {
 				await lumigo.afterPackageInitialize();
 
 				expect(childProcess.execSync).not.toBeCalledWith(
-					"npm install --no-save @lumigo/tracer",
+					"npm install @lumigo/tracer",
 					"utf8"
 				);
 			});
@@ -318,7 +318,7 @@ describe("Lumigo plugin (node.js)", () => {
 				await lumigo.afterDeployFunctionInitialize();
 
 				expect(childProcess.execSync).not.toBeCalledWith(
-					"npm install --no-save @lumigo/tracer",
+					"npm install @lumigo/tracer",
 					"utf8"
 				);
 			});
@@ -741,7 +741,7 @@ function assertFileOutput({ filename, requireHandler }) {
 
 function assertTracerInstall() {
 	expect(childProcess.execSync).toBeCalledWith(
-		"npm install --no-save @lumigo/tracer@latest",
+		"npm install @lumigo/tracer@latest",
 		"utf8"
 	);
 }
