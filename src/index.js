@@ -282,7 +282,7 @@ class LumigoPlugin {
 		this.log(`installing @lumigo/tracer@${finalVersion}...`);
 		let installCommand;
 		if (this.nodePackageManager === NodePackageManagers.NPM) {
-			installCommand = `npm install --no-save @lumigo/tracer@${finalVersion}`;
+			installCommand = `npm install @lumigo/tracer@${finalVersion}`;
 		} else if (this.nodePackageManager === NodePackageManagers.Yarn) {
 			installCommand = `yarn add @lumigo/tracer@${finalVersion}`;
 		} else {
