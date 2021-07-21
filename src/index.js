@@ -325,7 +325,10 @@ class LumigoPlugin {
 	async ensureLumigoPythonIsInstalled() {
 		this.log("checking if lumigo_tracer is installed...");
 
-		const plugins = _.get(this.serverless.service, "plugins", []);
+		const pluginsSection = _.get(this.serverless.service, "plugins", []);
+		const plugins = Array.isArray(pluginsSection)
+			? pluginsSection
+			: pluginsSection.modules;
 		const slsPythonInstalled = plugins.includes("serverless-python-requirements");
 
 		const ensureTracerInstalled = async fileName => {
