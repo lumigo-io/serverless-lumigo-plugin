@@ -514,6 +514,7 @@ lumigo_tracer`);
 
 		describe("given the requirement.txt file exists", () => {
 			beforeEach(() => {
+				serverless.service.plugins = ["a-module"];
 				fs.pathExistsSync.mockReturnValue(true);
 				fs.readFile.mockReturnValue(`
 --index-url https://1wmWND-GD5RPAwKgsdvb6DphXCj0vPLs@pypi.fury.io/lumigo/
@@ -522,6 +523,12 @@ lumigo_tracer`);
 			});
 
 			test("it should wrap all functions after package initialize", async () => {
+				await lumigo.afterPackageInitialize();
+				assertPythonFunctionsAreWrapped({ token: `'${token}'` });
+			});
+
+			test("it should wrap all functions after package initialize with modules in plugins", async () => {
+				serverless.service.plugins = { modules: ["a-module"] };
 				await lumigo.afterPackageInitialize();
 				assertPythonFunctionsAreWrapped({ token: `'${token}'` });
 			});
