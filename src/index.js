@@ -447,7 +447,8 @@ module.exports.${handlerFuncName} = tracer.trace(handler);`;
 
 		// convert from abs path to relative path, e.g.
 		// /Users/username/source/project/_lumigo/hello.world.js -> _lumigo/hello.world.js
-		const newFilePath = path.relative(this.serverless.config.servicePath, filePath);
+		// Make sure to support windows paths
+		const newFilePath = path.relative(this.serverless.config.servicePath, filePath).replace("\\", "/");
 		// e.g. _lumigo/hello.world.js -> _lumigo/hello.world.handler
 		return newFilePath.substr(0, newFilePath.lastIndexOf(".") + 1) + handlerFuncName;
 	}
