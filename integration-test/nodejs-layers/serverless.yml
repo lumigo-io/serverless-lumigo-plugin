@@ -7,7 +7,7 @@ custom:
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs14.x
   environment:
     LUMIGO_TRACER_HOST: "test.execute-api.us-west-2.amazonaws.com"
     LUMIGO_DEBUG: "TRUE"
