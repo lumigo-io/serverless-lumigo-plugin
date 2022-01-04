@@ -18,7 +18,7 @@ jobs:
 
   deploy:
     docker:
-      - image: circleci/node:10.18.0
+      - image: circleci/node:10.19.0
     working_directory: ~/serverless-lumigo
     steps:
       - checkout
