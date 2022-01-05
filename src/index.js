@@ -45,27 +45,29 @@ class LumigoPlugin {
 	}
 
 	extendServerlessSchema() {
-		this.serverless.configSchemaHandler.defineFunctionProperties("aws", {
-			type: "object",
-			properties: {
-				lumigo: {
-					type: "object",
-					properties: {
-						token: { type: "string" },
-						enabled: { type: "boolean" },
-						pinVersion: { type: "string" },
-						skipInstallNodeTracer: { type: "boolean" },
-						skipReqCheck: { type: "boolean" },
-						step_function: { type: "boolean" },
-						useLayers: { type: "boolean" },
-						nodePackageManager: { type: "string" },
-						nodeLayerVersion: { type: "string" },
-						pythonLayerVersion: { type: "string" }
-					},
-					additionalProperties: false
-				}
-			}
-		});
+    if (this.serverless.configSchemaHandler) {
+      this.serverless.configSchemaHandler.defineFunctionProperties("aws", {
+        type: "object",
+        properties: {
+          lumigo: {
+            type: "object",
+            properties: {
+              token: {type: "string"},
+              enabled: {type: "boolean"},
+              pinVersion: {type: "string"},
+              skipInstallNodeTracer: {type: "boolean"},
+              skipReqCheck: {type: "boolean"},
+              step_function: {type: "boolean"},
+              useLayers: {type: "boolean"},
+              nodePackageManager: {type: "string"},
+              nodeLayerVersion: {type: "string"},
+              pythonLayerVersion: {type: "string"}
+            },
+            additionalProperties: false
+          }
+        }
+      });
+    }
 	}
 
 	get nodePackageManager() {
