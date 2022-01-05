@@ -21,9 +21,7 @@ sls deploy --force --stage $random
 
 echo "** Testing **"
 echo
-#../../node_modules/serverless/scripts/serverless.js invoke -l -f test --stage $random
-#sls invoke -l true -f test --stage $random | grep "#LUMIGO#"
-sls invoke -l true -f test --stage $random
+sls invoke -l -f test --stage $random | grep "#LUMIGO#"
 
 echo "** Removing stack **"
 echo
