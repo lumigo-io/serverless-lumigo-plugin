@@ -1,7 +1,7 @@
 const fs = require("fs-extra");
 const childProcess = require("child_process");
 const Serverless = require("serverless/lib/Serverless");
-const AwsProvider = require("serverless/lib/plugins/aws/provider/awsProvider");
+const AwsProvider = require("serverless/lib/plugins/aws/provider");
 
 jest.mock("fs-extra");
 jest.mock("child_process");
