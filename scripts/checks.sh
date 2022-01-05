@@ -45,11 +45,11 @@ npm i
 sls deploy --force --stage $random
 echo "** Testing #1 **"
 echo
-sls invoke -l true -f test --stage $random | grep "#LUMIGO#"
+sls invoke -l -f test --stage $random | grep "#LUMIGO#"
 
 echo "** Testing #2 **"
 echo 
-sls invoke -l true -f test --stage $random | grep "#LUMIGO#"
+sls invoke -l -f test --stage $random | grep "#LUMIGO#"
 echo "** Removing stack **"
 echo
 sls remove --stage $random
