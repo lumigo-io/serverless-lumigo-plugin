@@ -586,7 +586,7 @@ lumigo_tracer`);
 			});
 
 			test("it should error", async () => {
-				await expect(lumigo.afterPackageInitialize()).rejects;
+				await expect(lumigo.afterPackageInitialize()).rejects.toThrow();
 				expect(fs.pathExistsSync).toBeCalledWith("requirements.txt");
 			});
 		});
@@ -598,7 +598,7 @@ lumigo_tracer`);
 			});
 
 			test("it should error", async () => {
-				await expect(lumigo.afterPackageInitialize()).rejects;
+				await expect(lumigo.afterPackageInitialize()).rejects.toThrow();
 				expect(fs.pathExistsSync).toBeCalledWith("requirements.txt");
 				expect(fs.readFile).toBeCalledWith("requirements.txt", "utf8");
 			});
