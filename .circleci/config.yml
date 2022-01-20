@@ -3,7 +3,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/node:10.19.0
+      - image: cimg/node:16.13.2
     working_directory: ~/serverless-lumigo-plugin
     steps:
       - checkout
