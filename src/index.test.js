@@ -101,7 +101,7 @@ describe("Invalid plugin configuration", () => {
 });
 
 describe("Lumigo plugin (node.js)", () => {
-	describe.each([["nodejs12.x"], ["nodejs10.x"]])("when using runtime %s", runtime => {
+	describe.each([["nodejs14.x"], ["nodejs12.x"], ["nodejs10.x"]])("when using runtime %s", runtime => {
 		beforeEach(() => {
 			serverless.service.provider.runtime = runtime;
 		});
@@ -125,9 +125,55 @@ describe("Lumigo plugin (node.js)", () => {
 			);
 		});
 
-		test("it should wrap all non-skipped functions after package initialize", async () => {
-			await lumigo.afterPackageInitialize();
-			assertNodejsFunctionsAreWrapped();
+		if(runtime === "nodejs14.x"){
+			describe("when nodeUseModule is true", () => {
+				beforeEach(() => {
+					serverless.service.custom.lumigo.nodeUseModule = true;
+				});
+
+				test("it should wrap all non-skipped functions after package initialize ES style", async () => {
+					await lumigo.afterPackageInitialize();
+					assertNodejsFunctionsAreWrappedES();
+				});
+			});
+
+			describe("when nodeModuleFileExtension is mjs", () => {
+				beforeEach(async () => {
+					serverless.service.custom.lumigo.nodeUseModule = true;
+					serverless.service.custom.lumigo.nodeModuleFileExtension = "mjs";
+					options.function = "hello";
+					await lumigo.afterDeployFunctionInitialize();
+				});
+
+				test("should add mjs as file extension", async () => {
+					assertFileOutputES({
+						filename: "hello.js", 
+						importStatement: "import {world as lumigoHandler} from '../hello.mjs'",
+						exportStatement: "export const world = tracer.trace(lumigoHandler);"
+					});
+					expect(serverless.service.functions.hello.handler).toBe(
+						"_lumigo/hello.world"
+					);
+				});
+			});
+		}
+
+		describe("when nodeUseModule is false", () => {
+			beforeEach(() => {
+				serverless.service.custom.lumigo.nodeUseModule = false;
+			});
+
+			test("it should wrap all non-skipped functions after package initialize CJS style", async () => {
+				await lumigo.afterPackageInitialize();
+				assertNodejsFunctionsAreWrappedCJS();
+			});
+		});
+
+		describe("when nodeUseModule is not set", () => {
+			test("it should wrap all non-skipped functions after package initialize CJS style", async () => {
+				await lumigo.afterPackageInitialize();
+				assertNodejsFunctionsAreWrappedCJS();
+			});
 		});
 
 		test("it should clean up after deployment artifact is created", async () => {
@@ -266,7 +312,7 @@ describe("Lumigo plugin (node.js)", () => {
 
 			it("should only wrap one function", () => {
 				expect(fs.outputFile).toBeCalledTimes(1);
-				assertFileOutput({
+				assertFileOutputCJS({
 					filename: "hello.js",
 					requireHandler: "require('../hello').world"
 				});
@@ -735,12 +781,24 @@ describe("is not nodejs or python", () => {
 	});
 });
 
-function assertFileOutput({ filename, requireHandler }) {
+function assertFileOutputCJS({ filename, requireHandler }) {
 	expect(fs.outputFile).toBeCalledWith(
 		`${__dirname}/_lumigo/${filename}`,
 		expect.toContainAllStrings(
 			'const tracer = require("@lumigo/tracer")',
 			`const handler = ${requireHandler}`,
+			`token:'${token}'`
+		)
+	);
+}
+
+function assertFileOutputES({ filename, importStatement, exportStatement }) {
+	expect(fs.outputFile).toBeCalledWith(
+		`${__dirname}/_lumigo/${filename}`,
+		expect.toContainAllStrings(
+			"import lumigo from '@lumigo/tracer'",
+			importStatement,
+			exportStatement,
 			`token:'${token}'`
 		)
 	);
@@ -789,7 +847,7 @@ function assertNodejsFunctionsHaveLayers(version) {
 	});
 }
 
-function assertNodejsFunctionsAreWrapped() {
+function assertNodejsFunctionsAreWrappedCJS() {
 	assertTracerInstall();
 
 	expect(fs.outputFile).toBeCalledTimes(6);
@@ -803,7 +861,48 @@ function assertNodejsFunctionsAreWrapped() {
 		{ filename: "bar.js", requireHandler: "require('../foo_bar').handler" },
 		{ filename: "jet.js", requireHandler: "require('../foo/foo/bar').handler" },
 		{ filename: "pack.js", requireHandler: "require('../foo.bar/zoo').handler" }
-	].forEach(assertFileOutput);
+	].forEach(assertFileOutputCJS);
+
+	const functions = serverless.service.functions;
+	expect(functions.hello.handler).toBe("_lumigo/hello.world");
+	expect(functions["hello.world"].handler).toBe("_lumigo/hello.world.handler");
+	expect(functions.foo.handler).toBe("_lumigo/foo.handler");
+	expect(functions.bar.handler).toBe("_lumigo/bar.handler");
+	expect(functions.jet.handler).toBe("_lumigo/jet.handler");
+	expect(functions.pack.handler).toBe("_lumigo/pack.handler");
+}
+
+function assertNodejsFunctionsAreWrappedES() {
+	assertTracerInstall();
+
+	expect(fs.outputFile).toBeCalledTimes(6);
+	[
+		{ 
+			filename: "hello.js", 
+			importStatement: "import {world as lumigoHandler} from '../hello.js'",
+			exportStatement: "export const world = tracer.trace(lumigoHandler);"
+		},
+		{ 
+			filename: "hello.world.js", 
+			importStatement: "import {handler as lumigoHandler} from '../hello.world.js'",
+			exportStatement: "export const handler = tracer.trace(lumigoHandler);"
+		},
+		{ 
+			filename: "foo.js", 
+			importStatement: "import {handler as lumigoHandler} from '../foo_bar.js'",
+			exportStatement: "export const handler = tracer.trace(lumigoHandler);"
+		},
+		{ 
+			filename: "jet.js", 
+			importStatement: "import {handler as lumigoHandler} from '../foo/foo/bar.js'",
+			exportStatement: "export const handler = tracer.trace(lumigoHandler);"
+		},
+		{ 
+			filename: "pack.js", 
+			importStatement: "import {handler as lumigoHandler} from '../foo.bar/zoo.js'",
+			exportStatement: "export const handler = tracer.trace(lumigoHandler);"
+		},
+	].forEach(assertFileOutputES);
 
 	const functions = serverless.service.functions;
 	expect(functions.hello.handler).toBe("_lumigo/hello.world");
