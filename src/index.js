@@ -61,6 +61,8 @@ class LumigoPlugin {
 							useLayers: { type: "boolean" },
 							nodePackageManager: { type: "string" },
 							nodeLayerVersion: { type: "string" },
+							nodeUseModule: { type: "boolean" },
+							nodeModuleFileExtension: { type: "string" },
 							pythonLayerVersion: { type: "string" }
 						},
 						additionalProperties: false
@@ -68,6 +70,18 @@ class LumigoPlugin {
 				}
 			});
 		}
+	}
+
+	get nodeModuleFileExtension() {
+		return _.get(
+			this.serverless.service,
+			"custom.lumigo.nodeModuleFileExtension",
+			"js"
+		).toLowerCase();
+	}
+
+	get nodeUseModule() {
+		return _.get(this.serverless.service, "custom.lumigo.nodeUseModule", false);
 	}
 
 	get nodePackageManager() {
@@ -425,7 +439,7 @@ Consider using the serverless-python-requirements plugin to help you package Pyt
 			throw new this.serverless.classes.Error("Lumigo's tracer token is undefined");
 		}
 		let configuration = [];
-		options = _.omit(options, ["nodePackageManager"]);
+		options = _.omit(options, ["nodePackageManager","nodeUseModule", "nodeModuleFileExtension"]);
 		for (const [key, value] of Object.entries(options)) {
 			if (String(value).toLowerCase() === "true") {
 				configuration.push(`${key}${equalityToken}${trueValue}`);
@@ -458,13 +472,25 @@ Consider using the serverless-python-requirements plugin to help you package Pyt
 		const handlerModulePath = func.handler.substr(0, func.handler.lastIndexOf("."));
 		// e.g. functions/hello.world.handler -> handler
 		const handlerFuncName = handler.substr(handler.lastIndexOf(".") + 1);
-		const wrappedFunction = `
+
+        
+
+		const wrappedESMFunction = `
+import lumigo from '@lumigo/tracer'
+import {${handlerFuncName} as lumigoHandler} from '../${handlerModulePath}.${this.nodeModuleFileExtension}'
+const tracer = lumigo(${this.getNodeTracerParameters(token, options)})
+
+export const ${handlerFuncName} = tracer.trace(lumigoHandler);`;
+
+		const wrappedCJSFunction = `
 const tracer = require("@lumigo/tracer")({
 	${this.getNodeTracerParameters(token, options)}
 });
 const handler = require('../${handlerModulePath}').${handlerFuncName};
 
 module.exports.${handlerFuncName} = tracer.trace(handler);`;
+
+		const wrappedFunction = (this.nodeUseModule) ? wrappedESMFunction : wrappedCJSFunction;
 
 		const fileName = localName + ".js";
 		// e.g. hello.world.js -> /Users/username/source/project/_lumigo/hello.world.js
