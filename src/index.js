@@ -477,10 +477,10 @@ Consider using the serverless-python-requirements plugin to help you package Pyt
 
 		const wrappedESMFunction = `
 import lumigo from '@lumigo/tracer'
-import {${handlerFuncName} as lumigoHandler} from '../${handlerModulePath}.${this.nodeModuleFileExtension}'
+import {${handlerFuncName} as originalHandler} from '../${handlerModulePath}.${this.nodeModuleFileExtension}'
 const tracer = lumigo({ ${this.getNodeTracerParameters(token, options)} })
 
-export const ${handlerFuncName} = tracer.trace(lumigoHandler);`;
+export const ${handlerFuncName} = tracer.trace(originalHandler);`;
 
 		const wrappedCJSFunction = `
 const tracer = require("@lumigo/tracer")({
