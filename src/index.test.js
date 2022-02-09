@@ -118,7 +118,6 @@ describe("Lumigo plugin (node.js)", () => {
 
 		test("edgeHost configuration not present, should not appear in the wrapped code", async () => {
 			await lumigo.afterPackageInitialize();
-
 			expect(fs.outputFile).toBeCalledWith(
 				__dirname + "/_lumigo/hello.js",
 				expect.not.toContainAllStrings(`edgeHost:'${edgeHost}'`)
