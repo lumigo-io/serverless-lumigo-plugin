@@ -439,7 +439,11 @@ Consider using the serverless-python-requirements plugin to help you package Pyt
 			throw new this.serverless.classes.Error("Lumigo's tracer token is undefined");
 		}
 		let configuration = [];
-		options = _.omit(options, ["nodePackageManager","nodeUseESModule", "nodeModuleFileExtension"]);
+		options = _.omit(options, [
+			"nodePackageManager",
+			"nodeUseESModule",
+			"nodeModuleFileExtension"
+		]);
 		for (const [key, value] of Object.entries(options)) {
 			if (String(value).toLowerCase() === "true") {
 				configuration.push(`${key}${equalityToken}${trueValue}`);
@@ -473,11 +477,12 @@ Consider using the serverless-python-requirements plugin to help you package Pyt
 		// e.g. functions/hello.world.handler -> handler
 		const handlerFuncName = handler.substr(handler.lastIndexOf(".") + 1);
 
-        
+		// too shorten the file extension ref for prettier during test:all
+		const fileExt = this.nodeModuleFileExtension;
 
 		const wrappedESMFunction = `
 import lumigo from '@lumigo/tracer'
-import {${handlerFuncName} as originalHandler} from '../${handlerModulePath}.${this.nodeModuleFileExtension}'
+import {${handlerFuncName} as originalHandler} from '../${handlerModulePath}.${fileExt}'
 const tracer = lumigo({ ${this.getNodeTracerParameters(token, options)} })
 
 export const ${handlerFuncName} = tracer.trace(originalHandler);`;
@@ -490,7 +495,9 @@ const handler = require('../${handlerModulePath}').${handlerFuncName};
 
 module.exports.${handlerFuncName} = tracer.trace(handler);`;
 
-		const wrappedFunction = (this.nodeUseESModule) ? wrappedESMFunction : wrappedCJSFunction;
+		const wrappedFunction = this.nodeUseESModule
+			? wrappedESMFunction
+			: wrappedCJSFunction;
 
 		const fileName = localName + ".js";
 		// e.g. hello.world.js -> /Users/username/source/project/_lumigo/hello.world.js

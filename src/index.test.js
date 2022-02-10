@@ -101,7 +101,8 @@ describe("Invalid plugin configuration", () => {
 });
 
 describe("Lumigo plugin (node.js)", () => {
-	describe.each([["nodejs14.x"], ["nodejs12.x"], ["nodejs10.x"]])("when using runtime %s", runtime => {
+	const runtimes = [["nodejs14.x"], ["nodejs12.x"], ["nodejs10.x"]];
+	describe.each(runtimes)("when using runtime %s", runtime => {
 		beforeEach(() => {
 			serverless.service.provider.runtime = runtime;
 		});
@@ -124,7 +125,7 @@ describe("Lumigo plugin (node.js)", () => {
 			);
 		});
 
-		if(runtime === "nodejs14.x"){
+		if (runtime === "nodejs14.x") {
 			describe("when nodeUseESModule is true", () => {
 				beforeEach(() => {
 					serverless.service.custom.lumigo.nodeUseESModule = true;
@@ -146,9 +147,11 @@ describe("Lumigo plugin (node.js)", () => {
 
 				test("should add mjs as file extension", async () => {
 					assertFileOutputES({
-						filename: "hello.js", 
-						importStatement: "import {world as originalHandler} from '../hello.mjs'",
-						exportStatement: "export const world = tracer.trace(originalHandler);"
+						filename: "hello.js",
+						importStatement:
+							"import {world as originalHandler} from '../hello.mjs'",
+						exportStatement:
+							"export const world = tracer.trace(originalHandler);"
 					});
 					expect(serverless.service.functions.hello.handler).toBe(
 						"_lumigo/hello.world"
@@ -876,31 +879,34 @@ function assertNodejsFunctionsAreWrappedES() {
 
 	expect(fs.outputFile).toBeCalledTimes(6);
 	[
-		{ 
-			filename: "hello.js", 
+		{
+			filename: "hello.js",
 			importStatement: "import {world as originalHandler} from '../hello.js'",
 			exportStatement: "export const world = tracer.trace(originalHandler);"
 		},
-		{ 
-			filename: "hello.world.js", 
-			importStatement: "import {handler as originalHandler} from '../hello.world.js'",
+		{
+			filename: "hello.world.js",
+			importStatement:
+				"import {handler as originalHandler} from '../hello.world.js'",
 			exportStatement: "export const handler = tracer.trace(originalHandler);"
 		},
-		{ 
-			filename: "foo.js", 
+		{
+			filename: "foo.js",
 			importStatement: "import {handler as originalHandler} from '../foo_bar.js'",
 			exportStatement: "export const handler = tracer.trace(originalHandler);"
 		},
-		{ 
-			filename: "jet.js", 
-			importStatement: "import {handler as originalHandler} from '../foo/foo/bar.js'",
+		{
+			filename: "jet.js",
+			importStatement:
+				"import {handler as originalHandler} from '../foo/foo/bar.js'",
 			exportStatement: "export const handler = tracer.trace(originalHandler);"
 		},
-		{ 
-			filename: "pack.js", 
-			importStatement: "import {handler as originalHandler} from '../foo.bar/zoo.js'",
+		{
+			filename: "pack.js",
+			importStatement:
+				"import {handler as originalHandler} from '../foo.bar/zoo.js'",
 			exportStatement: "export const handler = tracer.trace(originalHandler);"
-		},
+		}
 	].forEach(assertFileOutputES);
 
 	const functions = serverless.service.functions;
