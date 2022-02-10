@@ -125,9 +125,9 @@ describe("Lumigo plugin (node.js)", () => {
 		});
 
 		if(runtime === "nodejs14.x"){
-			describe("when nodeUseModule is true", () => {
+			describe("when nodeUseESModule is true", () => {
 				beforeEach(() => {
-					serverless.service.custom.lumigo.nodeUseModule = true;
+					serverless.service.custom.lumigo.nodeUseESModule = true;
 				});
 
 				test("it should wrap all non-skipped functions after package initialize ES style", async () => {
@@ -138,7 +138,7 @@ describe("Lumigo plugin (node.js)", () => {
 
 			describe("when nodeModuleFileExtension is mjs", () => {
 				beforeEach(async () => {
-					serverless.service.custom.lumigo.nodeUseModule = true;
+					serverless.service.custom.lumigo.nodeUseESModule = true;
 					serverless.service.custom.lumigo.nodeModuleFileExtension = "mjs";
 					options.function = "hello";
 					await lumigo.afterDeployFunctionInitialize();
@@ -157,9 +157,9 @@ describe("Lumigo plugin (node.js)", () => {
 			});
 		}
 
-		describe("when nodeUseModule is false", () => {
+		describe("when nodeUseESModule is false", () => {
 			beforeEach(() => {
-				serverless.service.custom.lumigo.nodeUseModule = false;
+				serverless.service.custom.lumigo.nodeUseESModule = false;
 			});
 
 			test("it should wrap all non-skipped functions after package initialize CJS style", async () => {
@@ -168,7 +168,7 @@ describe("Lumigo plugin (node.js)", () => {
 			});
 		});
 
-		describe("when nodeUseModule is not set", () => {
+		describe("when nodeUseESModule is not set", () => {
 			test("it should wrap all non-skipped functions after package initialize CJS style", async () => {
 				await lumigo.afterPackageInitialize();
 				assertNodejsFunctionsAreWrappedCJS();

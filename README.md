@@ -83,7 +83,7 @@ provider:
 custom:
   lumigo:
     token: <YOUR TOKEN GOES HERE>
-    nodeUseModule: true
+    nodeUseESModule: true
     nodeModuleFileExtension: js
 ```
 
