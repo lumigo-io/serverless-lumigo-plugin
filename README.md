@@ -73,6 +73,20 @@ custom:
     skipInstallNodeTracer: true # defaults to false
 ```
 
+In case you are using ES Modules for Lambda handlers.
+
+```yml
+provider:
+  name: aws
+  runtime: nodejs14.x
+
+custom:
+  lumigo:
+    token: <YOUR TOKEN GOES HERE>
+    nodeUseESModule: true
+    nodeModuleFileExtension: js
+```
+
 ## Python functions
 
 For Python functions, we recommend using the [serverless-python-requirements](https://www.npmjs.com/package/serverless-python-requirements) plugin to help you manage your dependencies. You should have the following in your `requirements.txt`:

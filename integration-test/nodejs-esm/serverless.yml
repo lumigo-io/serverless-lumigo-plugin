@@ -1,0 +1,24 @@
+service: serverless-plugin-nodejs-esm
+
+custom:
+  lumigo:
+    token: t_b9222642efc14985baaed
+    nodePackageManager: npm
+    nodeUseESModule: true
+    nodeModuleFileExtension: js
+    edgeHost: test.execute-api.us-west-2.amazonaws.com
+    pinVersion: 1.30.0
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  environment:
+    LUMIGO_TRACER_HOST: "test.execute-api.us-west-2.amazonaws.com"
+    LUMIGO_DEBUG: "TRUE"
+
+functions:
+  test:
+    handler: handler.hello
+
+plugins:
+  - ./../../src/index
