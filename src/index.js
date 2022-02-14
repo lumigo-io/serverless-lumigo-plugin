@@ -45,7 +45,11 @@ class LumigoPlugin {
 	}
 
 	extendServerlessSchema() {
-		if (this.serverless.configSchemaHandler && typeof this.serverless.configSchemaHandler.defineFunctionProperties === "function") {
+		if (
+			this.serverless.configSchemaHandler &&
+			typeof this.serverless.configSchemaHandler.defineFunctionProperties ===
+				"function"
+		) {
 			this.serverless.configSchemaHandler.defineFunctionProperties("aws", {
 				type: "object",
 				properties: {
