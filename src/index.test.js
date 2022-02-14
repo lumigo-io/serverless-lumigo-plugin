@@ -100,6 +100,14 @@ describe("Invalid plugin configuration", () => {
 	});
 });
 
+describe("Old serverless compatibility", () => {
+	test("Schema validation", async () => {
+		// This is the case in serverless version 1.83.3
+		serverless.configSchemaHandler = {};
+		expect(lumigo.extendServerlessSchema()).resolves;
+	});
+});
+
 describe("Lumigo plugin (node.js)", () => {
 	const runtimes = [["nodejs14.x"], ["nodejs12.x"], ["nodejs10.x"]];
 	describe.each(runtimes)("when using runtime %s", runtime => {
