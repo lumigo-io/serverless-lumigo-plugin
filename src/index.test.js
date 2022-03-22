@@ -1,6 +1,6 @@
 const fs = require("fs-extra");
 const childProcess = require("child_process");
-const Serverless = require("serverless/lib/Serverless");
+const Serverless = require("serverless/lib/serverless");
 const AwsProvider = require("serverless/lib/plugins/aws/provider");
 
 jest.mock("fs-extra");
@@ -27,7 +27,8 @@ let options;
 const log = jest.fn();
 
 beforeEach(() => {
-	serverless = new Serverless();
+	options = {};
+	serverless = new Serverless({ commands: [], options });
 	serverless.servicePath = true;
 	serverless.service.service = "lumigo-test";
 	serverless.service.provider.compiledCloudFormationTemplate = { Resources: {} };
@@ -74,9 +75,7 @@ beforeEach(() => {
 	serverless.config.servicePath = __dirname;
 	childProcess.execSync.mockImplementation(() => "");
 	const LumigoPlugin = require("./index");
-	options = {};
 	lumigo = new LumigoPlugin(serverless, options);
-
 	delete process.env.SLS_DEBUG;
 });
 
