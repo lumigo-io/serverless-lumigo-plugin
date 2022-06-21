@@ -25,7 +25,9 @@ jobs:
       - run: npm ci
       - run: npm run test
       - run: npm run codecov
-      - run: npm run semantic-release
+      - run: release_output=$(npm run semantic-release)
+      - run: echo "$release_output"
+      - run: echo $release_output | grep "Published release" || exit 1
 
 workflows:
   version: 2
