@@ -143,4 +143,3 @@ You can configure lumigo behavior for individual functions as well -
 
 ## How to test
 * Run `npm run test:all`
-
