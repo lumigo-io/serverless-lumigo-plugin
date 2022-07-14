@@ -42,7 +42,7 @@ provider:
 custom:
   lumigo:
     token: <YOUR TOKEN GOES HERE>
-    nodePackageManager: <npm or yarn>
+    nodePackageManager: <npm, pnpm or yarn>
 ```
 
 In case you want to pin the specific tracer version use `pinVersion` attribute.

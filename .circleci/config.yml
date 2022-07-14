@@ -13,6 +13,7 @@ jobs:
       - run: conda install python==3.7
       - run: conda install virtualenv
       - run: npm ci
+      - run: npm install pnpm
       - run: npm run test:all
       - run: npm run codecov
 
