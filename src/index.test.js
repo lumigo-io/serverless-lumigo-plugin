@@ -293,7 +293,7 @@ describe("Lumigo plugin (node.js)", () => {
 				);
 			});
 
-			test("it should uninstall with Yarn", async () => {
+			test("it should uninstall with PNPM", async () => {
 				await lumigo.afterCreateDeploymentArtifacts();
 
 				expect(childProcess.execSync).toBeCalledWith(
