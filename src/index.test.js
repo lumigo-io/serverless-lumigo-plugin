@@ -284,7 +284,7 @@ describe("Lumigo plugin (node.js)", () => {
 				serverless.service.custom.lumigo.nodePackageManager = "pnpm";
 			});
 
-			test("it should install with Yarn", async () => {
+			test("it should install with PNPM", async () => {
 				await lumigo.afterPackageInitialize();
 
 				expect(childProcess.execSync).toBeCalledWith(
