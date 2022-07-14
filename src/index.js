@@ -12,7 +12,8 @@ const pythonLayerVersionsUrl =
 
 const NodePackageManagers = {
 	NPM: "npm",
-	Yarn: "yarn"
+	Yarn: "yarn",
+	PNPM: "pnpm"
 };
 
 const LayerArns = {
@@ -330,9 +331,11 @@ class LumigoPlugin {
 			installCommand = `npm install @lumigo/tracer@${finalVersion}`;
 		} else if (this.nodePackageManager === NodePackageManagers.Yarn) {
 			installCommand = `yarn add @lumigo/tracer@${finalVersion}`;
+		} else if (this.nodePackageManager === NodePackageManagers.PNPM) {
+			installCommand = `pnpm add @lumigo/tracer@${finalVersion}`;
 		} else {
 			throw new this.serverless.classes.Error(
-				"No Node.js package manager found. Please install either NPM or Yarn."
+				"No Node.js package manager found. Please install either NPM, PNPM or Yarn."
 			);
 		}
 
@@ -347,9 +350,11 @@ class LumigoPlugin {
 			uninstallCommand = "npm uninstall @lumigo/tracer";
 		} else if (this.nodePackageManager === NodePackageManagers.Yarn) {
 			uninstallCommand = "yarn remove @lumigo/tracer";
+		} else if (this.nodePackageManager === NodePackageManagers.PNPM) {
+			uninstallCommand = "pnpm remove @lumigo/tracer";
 		} else {
 			throw new this.serverless.classes.Error(
-				"No Node.js package manager found. Please install either NPM or Yarn."
+				"No Node.js package manager found. Please install either NPM, PNPM or Yarn."
 			);
 		}
 

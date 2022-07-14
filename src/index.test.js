@@ -279,6 +279,40 @@ describe("Lumigo plugin (node.js)", () => {
 			});
 		});
 
+		describe("when nodePackageManager is PNPM", () => {
+			beforeEach(() => {
+				serverless.service.custom.lumigo.nodePackageManager = "pnpm";
+			});
+
+			test("it should install with Yarn", async () => {
+				await lumigo.afterPackageInitialize();
+
+				expect(childProcess.execSync).toBeCalledWith(
+					"pnpm add @lumigo/tracer@latest",
+					"utf8"
+				);
+			});
+
+			test("it should uninstall with Yarn", async () => {
+				await lumigo.afterCreateDeploymentArtifacts();
+
+				expect(childProcess.execSync).toBeCalledWith(
+					"pnpm remove @lumigo/tracer",
+					"utf8"
+				);
+			});
+
+			test("Pin version", async () => {
+				serverless.service.custom.lumigo.pinVersion = "1.0.3";
+				await lumigo.afterPackageInitialize();
+
+				expect(childProcess.execSync).toBeCalledWith(
+					"pnpm add @lumigo/tracer@1.0.3",
+					"utf8"
+				);
+			});
+		});
+
 		describe("when nodePackageManager is NPM", () => {
 			beforeEach(() => {
 				serverless.service.custom.lumigo.nodePackageManager = "npm";
@@ -302,13 +336,13 @@ describe("Lumigo plugin (node.js)", () => {
 
 			test("it should error on install", async () => {
 				await expect(lumigo.afterPackageInitialize()).rejects.toThrow(
-					"No Node.js package manager found. Please install either NPM or Yarn."
+					"No Node.js package manager found. Please install either NPM, PNPM or Yarn"
 				);
 			});
 
 			test("it should error on uninstall", async () => {
 				await expect(lumigo.afterCreateDeploymentArtifacts()).rejects.toThrow(
-					"No Node.js package manager found. Please install either NPM or Yarn."
+					"No Node.js package manager found. Please install either NPM, PNPM or Yarn"
 				);
 			});
 		});
