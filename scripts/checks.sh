@@ -28,6 +28,28 @@ echo
 sls remove --stage $random
 popd
 
+pushd integration-test/nodejs-pnpm
+
+random=$RANDOM
+
+echo "** Testing NodeJS with PNPM **"
+echo "********************"
+echo
+echo
+
+echo "** Deploying **"
+echo
+sls deploy --force --stage $random
+
+echo "** Testing **"
+echo
+sls invoke -l -f test --stage $random | grep "#LUMIGO#"
+
+echo "** Removing stack **"
+echo
+sls remove --stage $random
+popd
+
 pushd integration-test/nodejs-esm
 
 random=$RANDOM

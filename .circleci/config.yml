@@ -15,6 +15,7 @@ jobs:
       - run: npm ci
       - run: npm run test:all
       - run: npm run codecov
+      - run: npm install -g pnpm
 
   deploy:
     docker:
