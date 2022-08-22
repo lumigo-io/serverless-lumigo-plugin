@@ -28,7 +28,7 @@ plugins:
   - serverless-lumigo
 ```
 
-* at the momment, integration with https://github.com/floydspace/serverless-esbuild is not fully working. instead you can install the tracer via https://github.com/lumigo-io/lumigo-node. or via Lumigo platform UI.
+* At the moment, integration with https://github.com/floydspace/serverless-esbuild is not fully compatible. Instead, you can install the tracer via https://github.com/lumigo-io/lumigo-node or via Lumigo's platform UI.
 
 ## Node.js functions
 
