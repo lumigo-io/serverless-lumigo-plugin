@@ -28,6 +28,8 @@ plugins:
   - serverless-lumigo
 ```
 
+* at the momment, integration with https://github.com/floydspace/serverless-esbuild is not fully working. instead you can install the tracer via https://github.com/lumigo-io/lumigo-node. or via Lumigo platform UI.
+
 ## Node.js functions
 
 For Node.js functions, the plugin would install the latest version of the Lumigo tracer for Node.js during `serverless package` and `serverless deploy`. It would also wrap your functions as well, so you only need to configure your Lumigo token in a `custom` section inside the `serverless.yml`.
