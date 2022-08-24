@@ -97,8 +97,22 @@ class LumigoPlugin {
 		).toLowerCase();
 	}
 
+	get useServerlessEsbuild() {
+		const plugins = _.get(this.serverless.service, "plugins", []);
+		const modulesPlugins = _.get(this.serverless.service, "plugins.modules", []); // backward compatible
+		const isServerlessEsbuildInList = list =>
+			list.find(plugin => plugin === "serverless-esbuild");
+		return (
+			(Array.isArray(plugins) && isServerlessEsbuildInList(plugins)) ||
+			(Array.isArray(modulesPlugins) && isServerlessEsbuildInList(modulesPlugins))
+		);
+	}
+
 	get useLayers() {
-		return _.get(this.serverless.service, "custom.lumigo.useLayers", false);
+		return (
+			_.get(this.serverless.service, "custom.lumigo.useLayers", false) ||
+			this.useServerlessEsbuild
+		);
 	}
 
 	get pinnedNodeLayerVersion() {
@@ -180,30 +194,7 @@ class LumigoPlugin {
 			);
 		}
 
-		if (this.useLayers) {
-			for (const func of functions) {
-				const funcRuntime = func.runtime || runtime;
-				func.layers = func.layers || [];
-				const layer = await this.getLayerArn(funcRuntime);
-				func.layers.push(layer);
-				func.environment = func.environment || {};
-				func.environment["LUMIGO_ORIGINAL_HANDLER"] = func.handler;
-				func.environment["LUMIGO_TRACER_TOKEN"] = token;
-
-				if (funcRuntime.startsWith("nodejs")) {
-					func.handler = "lumigo-auto-instrument.handler";
-				} else if (funcRuntime.startsWith("python")) {
-					func.handler = "/opt/python/lumigo_tracer._handler";
-				}
-
-				// replace the function handler to the wrapped function
-				this.verboseLog(`adding Lumigo tracer layer to [${func.localName}]...`);
-				this.serverless.service.functions[func.localName].handler = func.handler;
-				this.serverless.service.functions[func.localName].environment =
-					func.environment;
-				this.serverless.service.functions[func.localName].layers = func.layers;
-			}
-		} else {
+		if (!this.useLayers) {
 			const pinVersion = _.get(this.serverless.service, "custom.lumigo.pinVersion");
 			const skipInstallNodeTracer = _.get(
 				this.serverless.service,
@@ -274,6 +265,33 @@ class LumigoPlugin {
 
 	async afterCreateDeploymentArtifacts() {
 		if (this.useLayers) {
+			const token = _.get(this.serverless.service, "custom.lumigo.token");
+			const { runtime, functions } = this.getFunctionsToWrap(
+				this.serverless.service
+			);
+
+			for (const func of functions) {
+				const funcRuntime = func.runtime || runtime;
+				func.layers = func.layers || [];
+				const layer = await this.getLayerArn(funcRuntime);
+				func.layers.push(layer);
+				func.environment = func.environment || {};
+				func.environment["LUMIGO_ORIGINAL_HANDLER"] = func.handler;
+				func.environment["LUMIGO_TRACER_TOKEN"] = token;
+
+				if (funcRuntime.startsWith("nodejs")) {
+					func.handler = "lumigo-auto-instrument.handler";
+				} else if (funcRuntime.startsWith("python")) {
+					func.handler = "/opt/python/lumigo_tracer._handler";
+				}
+
+				// replace the function handler to the wrapped function
+				this.verboseLog(`adding Lumigo tracer layer to [${func.localName}]...`);
+				this.serverless.service.functions[func.localName].handler = func.handler;
+				this.serverless.service.functions[func.localName].environment =
+					func.environment;
+				this.serverless.service.functions[func.localName].layers = func.layers;
+			}
 			return;
 		}
 

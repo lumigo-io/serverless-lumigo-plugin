@@ -389,6 +389,18 @@ describe("Lumigo plugin (node.js)", () => {
 			});
 		});
 
+		describe("when using esbuild plugin", () => {
+			beforeEach(() => {
+				serverless.service.plugins = ["serverless-esbuild"];
+			});
+
+			test("layers are added during after:package:initialize", async () => {
+				await lumigo.afterCreateDeploymentArtifacts();
+
+				assertNodejsFunctionsHaveLayers();
+			});
+		});
+
 		describe("when useLayers is true", () => {
 			beforeEach(() => {
 				serverless.service.custom.lumigo.useLayers = true;
@@ -413,14 +425,14 @@ describe("Lumigo plugin (node.js)", () => {
 			});
 
 			test("layers are added during after:package:initialize", async () => {
-				await lumigo.afterPackageInitialize();
+				await lumigo.afterCreateDeploymentArtifacts();
 
 				assertNodejsFunctionsHaveLayers();
 			});
 
-			test("layers are added during after:deploy:function:initialize", async () => {
+			test("layers are added during after:package:createDeploymentArtifacts", async () => {
 				options.function = "hello";
-				await lumigo.afterDeployFunctionInitialize();
+				await lumigo.afterCreateDeploymentArtifacts();
 
 				const functions = serverless.service.functions;
 				expect(functions.hello.handler).toBe("lumigo-auto-instrument.handler");
@@ -440,15 +452,16 @@ describe("Lumigo plugin (node.js)", () => {
 					serverless.service.custom.lumigo.nodeLayerVersion = 87;
 				});
 
-				test("layer version 87 are added during after:package:initialize", async () => {
+				test("layer version 87 are added during after:package:createDeploymentArtifacts", async () => {
 					await lumigo.afterPackageInitialize();
+					await lumigo.afterCreateDeploymentArtifacts();
 
 					assertNodejsFunctionsHaveLayers(87);
 				});
 
-				test("layers are added during after:deploy:function:initialize", async () => {
+				test("layers are added during after:package:createDeploymentArtifacts", async () => {
 					options.function = "hello";
-					await lumigo.afterDeployFunctionInitialize();
+					await lumigo.afterCreateDeploymentArtifacts();
 
 					const functions = serverless.service.functions;
 					expect(functions.hello.handler).toBe(
@@ -498,15 +511,15 @@ describe("Lumigo plugin (python)", () => {
 				delete serverless.service.custom.lumigo.useLayers;
 			});
 
-			test("layers are added during after:package:initialize", async () => {
-				await lumigo.afterPackageInitialize();
+			test("layers are added during after:package:createDeploymentArtifacts", async () => {
+				await lumigo.afterCreateDeploymentArtifacts();
 
 				assertPythonFunctionsHaveLayers();
 			});
 
-			test("layers are added during after:deploy:function:initialize", async () => {
+			test("layers are added during after:package:createDeploymentArtifacts", async () => {
 				options.function = "hello";
-				await lumigo.afterDeployFunctionInitialize();
+				await lumigo.afterCreateDeploymentArtifacts();
 
 				const functions = serverless.service.functions;
 				expect(functions.hello.handler).toBe(
@@ -528,15 +541,15 @@ describe("Lumigo plugin (python)", () => {
 					serverless.service.custom.lumigo.pythonLayerVersion = 87;
 				});
 
-				test("layer version 87 are added during after:package:initialize", async () => {
-					await lumigo.afterPackageInitialize();
+				test("layer version 87 are added during after:package:createDeploymentArtifacts", async () => {
+					await lumigo.afterCreateDeploymentArtifacts();
 
 					assertPythonFunctionsHaveLayers(87);
 				});
 
-				test("layers are added during after:deploy:function:initialize", async () => {
+				test("layers are added during after:package:createDeploymentArtifacts", async () => {
 					options.function = "hello";
-					await lumigo.afterDeployFunctionInitialize();
+					await lumigo.afterCreateDeploymentArtifacts();
 
 					const functions = serverless.service.functions;
 					expect(functions.hello.handler).toBe(
