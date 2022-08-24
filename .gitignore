@@ -66,3 +66,6 @@ typings/
 
 # Python
 venv
+
+# InteliJ
+.idea
