@@ -38,7 +38,7 @@ echo "********************"
 echo
 echo
 
-echo "** Deploying **"
+echo "** Install packages **"
 echo
 npm i
 
