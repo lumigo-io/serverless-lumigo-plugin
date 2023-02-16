@@ -412,7 +412,10 @@ Consider using the serverless-python-requirements plugin to help you package Pyt
 			}
 
 			const requirements = await fs.readFile(fileName, "utf8");
-			if (!requirements.includes("lumigo_tracer")) {
+			if (
+				!requirements.includes("lumigo_tracer") &&
+				!requirements.includes("lumigo-tracer")
+			) {
 				const errorMessage = `lumigo_tracer is not installed. Please check ${fileName}.`;
 				throw new this.serverless.classes.Error(errorMessage);
 			}
