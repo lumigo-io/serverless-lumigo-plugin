@@ -8,8 +8,5 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "@lumigo/tracer": "^1.30.0"
-  }
+  "license": "ISC"
 }
