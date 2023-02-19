@@ -4,7 +4,9 @@ workflows:
   build-deploy:
     jobs:
       - build:
-          context: common
+          context:
+            - common
+            - node.js
 
       - deploy:
           context:
