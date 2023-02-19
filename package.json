@@ -48,7 +48,8 @@
         "axios": "^0.21.1",
         "bluebird": "^3.5.5",
         "fs-extra": "^8.1.0",
-        "lodash": "^4.17.21"
+        "lodash": "^4.17.21",
+        "pnpm": "^7.27.1"
     },
     "devDependencies": {
         "@commitlint/cli": "^16.0.1",

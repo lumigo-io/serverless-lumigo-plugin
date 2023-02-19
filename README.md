@@ -23,7 +23,7 @@ Run `npm install` in your Serverless project.
 
 Add the plugin to your serverless.yml file
 
-```yml
+```yaml
 plugins:
   - serverless-lumigo
 ```
@@ -34,7 +34,7 @@ For Node.js functions, the plugin would install the latest version of the Lumigo
 
 For example:
 
-```yml
+```yaml
 provider:
   name: aws
   runtime: nodejs12.x
@@ -49,7 +49,7 @@ In case you want to pin the specific tracer version use `pinVersion` attribute.
 
 For example
 
-```yml
+```yaml
 provider:
   name: aws
   runtime: nodejs12.x
@@ -62,7 +62,7 @@ custom:
 
 In case you want to manage the Lumigo tracer dependency yourself - e.g. you want to use Lerna or Webpack, and can't have this plugin install the Lumigo tracer on your behalf on every deployment - then you can also disable the NPM install process altogether.
 
-```yml
+```yaml
 provider:
   name: aws
   runtime: nodejs12.x
@@ -75,7 +75,7 @@ custom:
 
 In case you are using ES Modules for Lambda handlers.
 
-```yml
+```yaml
 provider:
   name: aws
   runtime: nodejs14.x
@@ -91,7 +91,7 @@ custom:
 
 For Python functions, we recommend using the [serverless-python-requirements](https://www.npmjs.com/package/serverless-python-requirements) plugin to help you manage your dependencies. You should have the following in your `requirements.txt`:
 
-```
+```txt
 lumigo_tracer
 ```
 
@@ -99,7 +99,7 @@ This installs the Lumigo tracer for Python, and this plugin would wrap your func
 
 You also need to configure the Lumigo token in a `custom` section in the `serverless.yml`.
 
-```yml
+```yaml
 provider:
   name: aws
   runtime: python3.7
@@ -109,6 +109,7 @@ custom:
 ```
 
 In case you are not using `requirements.txt` to manage your requirements then you can add `skipReqCheck` and set it to `true`
+
 ```yaml
 custom:
   lumigo:
@@ -119,7 +120,8 @@ custom:
 ## Configuration
 
 In order to pass parameters to the tracer, just add them as keys to lumigo custom configuration. For example:
-```yml
+
+```yaml
 custom:
   lumigo:
     token: <YOUR TOKEN GOES HERE>
@@ -128,19 +130,21 @@ custom:
 
 ### Function Scope Configuration
 
-You can configure lumigo behavior for individual functions as well - 
+You can configure lumigo behavior for individual functions as well:
+
 - `enabled` - Allows one to enable or disable lumigo for specific a specific function
-  ```yml
+
+  ```yaml
   functions:
     foo:
       lumigo:
         enabled: false
-  
+
     bar:
       lumigo:
         enabled: ${self:custom.enabledLumigo}
   ```
 
 ## How to test
-* Run `npm run test:all`
 
+Run `npm run test:all`
