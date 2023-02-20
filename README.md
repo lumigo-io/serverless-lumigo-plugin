@@ -92,7 +92,7 @@ custom:
 For Python functions, we recommend using the [serverless-python-requirements](https://www.npmjs.com/package/serverless-python-requirements) plugin to help you manage your dependencies. You should have the following in your `requirements.txt`:
 
 ```txt
-lumigo_tracer
+lumigo_tracer or lumigo-tracer
 ```
 
 This installs the Lumigo tracer for Python, and this plugin would wrap your functions during `serverless package` and `serverless deploy`.
