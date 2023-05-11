@@ -272,7 +272,9 @@ class LumigoPlugin {
 
 			for (const func of functions) {
 				const funcRuntime = func.runtime || runtime;
-				func.layers = func.layers || [];
+				func.layers = func.layers || [
+					...(this.serverless.service.provider.layers || [])
+				];
 				const layer = await this.getLayerArn(funcRuntime);
 				func.layers.push(layer);
 				func.environment = func.environment || {};

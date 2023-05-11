@@ -399,6 +399,23 @@ describe("Lumigo plugin (node.js)", () => {
 
 				assertNodejsFunctionsHaveLayers();
 			});
+
+			test("custom layers configured at provider level are retained", async () => {
+				serverless.service.provider.layers = ["custom-layer"];
+
+				await lumigo.afterCreateDeploymentArtifacts();
+
+				console.log(serverless.service.functions);
+				const wrappedFunction = serverless.service.functions.hello;
+				expect(wrappedFunction.layers).not.toBeUndefined();
+				expect(wrappedFunction.layers).toHaveLength(2);
+				expect(wrappedFunction.layers[0]).toEqual("custom-layer");
+				expect(wrappedFunction.layers[1]).toEqual(
+					expect.stringMatching(
+						/arn:aws:lambda:us-east-1:114300393969:layer:lumigo-node-tracer:\d+/
+					)
+				);
+			});
 		});
 
 		describe("when useLayers is true", () => {
