@@ -31,7 +31,7 @@ plugins:
 ## Node.js functions
 
 For Node.js functions, the plugin would install the latest version of the Lumigo tracer for Node.js during `serverless package` and `serverless deploy`. It would also wrap your functions as well, so you only need to configure your Lumigo token in a `custom` section inside the `serverless.yml`.
-
+ 
 For example:
 
 ```yaml
@@ -102,7 +102,7 @@ You also need to configure the Lumigo token in a `custom` section in the `server
 ```yaml
 provider:
   name: aws
-  runtime: python3.7
+  runtime: python3.10
 custom:
   lumigo:
     token: <YOUR TOKEN GOES HERE>
