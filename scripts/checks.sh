@@ -131,7 +131,7 @@ echo
 echo
 pushd integration-test
 rm -rf venv || true
-virtualenv venv -p python3.7
+virtualenv venv -p python3.10
 . venv/bin/activate
 popd
 
