@@ -102,7 +102,7 @@ You also need to configure the Lumigo token in a `custom` section in the `server
 ```yaml
 provider:
   name: aws
-  runtime: python3.7
+  runtime: python3.9
 custom:
   lumigo:
     token: <YOUR TOKEN GOES HERE>

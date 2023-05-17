@@ -497,9 +497,9 @@ describe("Lumigo plugin (python)", () => {
 		});
 	});
 
-	describe("python3.7", () => {
+	describe("python3.9", () => {
 		beforeEach(() => {
-			serverless.service.provider.runtime = "python3.7";
+			serverless.service.provider.runtime = "python3.9";
 		});
 
 		describe("when useLayers is true", () => {

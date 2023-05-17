@@ -28,7 +28,7 @@ jobs:
       - run: wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
       - run: bash miniconda.sh -b -p $HOME/miniconda
       - run: echo 'export PATH=$PATH:$HOME/miniconda/bin' >> $BASH_ENV
-      - run: conda install python==3.7
+      - run: conda install python==3.9
       - run: conda install virtualenv
       - run: npm ci
       - run: npm install pnpm
