@@ -40,6 +40,9 @@ class LumigoPlugin {
 			),
 			"after:package:createDeploymentArtifacts": this.afterCreateDeploymentArtifacts.bind(
 				this
+			),
+			"after:deploy:function:packageFunction": this.afterDeployFunctionPackageFunction.bind(
+				this
 			)
 		};
 		this.extendServerlessSchema();
@@ -318,6 +321,10 @@ class LumigoPlugin {
 
 	async afterCreateDeploymentArtifacts() {
 		await this.updateFunctionConfigAfterPackage();
+	}
+
+	async afterDeployFunctionPackageFunction() {
+		await this.updateFunctionConfigAfterPackage([this.options.function]);
 	}
 
 	getFunctionsToWrap(service, functionNames) {
