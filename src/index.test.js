@@ -394,7 +394,7 @@ describe("Lumigo plugin (node.js)", () => {
 				serverless.service.plugins = ["serverless-esbuild"];
 			});
 
-			test("layers are added during after:package:initialize", async () => {
+			test("layers are added during after:package:createDeploymentArtifacts", async () => {
 				await lumigo.afterCreateDeploymentArtifacts();
 
 				assertNodejsFunctionsHaveLayers();
@@ -441,7 +441,7 @@ describe("Lumigo plugin (node.js)", () => {
 				);
 			});
 
-			test("layers are added during after:package:initialize", async () => {
+			test("layers are added during after:package:createDeploymentArtifacts", async () => {
 				await lumigo.afterCreateDeploymentArtifacts();
 
 				assertNodejsFunctionsHaveLayers();
