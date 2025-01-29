@@ -263,12 +263,13 @@ class LumigoPlugin {
 		}
 	}
 
-	async afterCreateDeploymentArtifacts() {
+	async updateFunctionConfigAfterPackage(functionNames) {
+		const { runtime, functions } = this.getFunctionsToWrap(
+			this.serverless.service,
+			functionNames
+		);
 		if (this.useLayers) {
 			const token = _.get(this.serverless.service, "custom.lumigo.token");
-			const { runtime, functions } = this.getFunctionsToWrap(
-				this.serverless.service
-			);
 
 			for (const func of functions) {
 				const funcRuntime = func.runtime || runtime;
@@ -297,8 +298,6 @@ class LumigoPlugin {
 			return;
 		}
 
-		const { runtime, functions } = this.getFunctionsToWrap(this.serverless.service);
-
 		if (functions.length === 0) {
 			return;
 		}
@@ -315,6 +314,10 @@ class LumigoPlugin {
 				await this.uninstallLumigoNodejs();
 			}
 		}
+	}
+
+	async afterCreateDeploymentArtifacts() {
+		await this.updateFunctionConfigAfterPackage();
 	}
 
 	getFunctionsToWrap(service, functionNames) {
