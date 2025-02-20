@@ -1,7 +1,7 @@
 {
     "name": "serverless-lumigo",
     "version": "0.0.0-dev",
-    "description": "Serverless framework plugin to auto-install the Lumigo tracer",
+    "description": "Lumigo’s plugin for Serverless Framework",
     "main": "src/index.js",
     "scripts": {
         "codecov": "codecov",
