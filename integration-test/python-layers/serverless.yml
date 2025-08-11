@@ -7,7 +7,7 @@ custom:
 
 provider:
   name: aws
-  runtime: python3.10
+  runtime: python3.12
   environment:
     LUMIGO_DEBUG: "TRUE"
 
