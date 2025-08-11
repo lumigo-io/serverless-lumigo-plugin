@@ -31,13 +31,13 @@ plugins:
 ## Node.js functions
 
 For Node.js functions, the plugin would install the latest version of the Lumigo tracer for Node.js during `serverless package` and `serverless deploy`. It would also wrap your functions as well, so you only need to configure your Lumigo token in a `custom` section inside the `serverless.yml`.
- 
+
 For example:
 
 ```yaml
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs22.x
 
 custom:
   lumigo:
@@ -52,7 +52,7 @@ For example
 ```yaml
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs22.x
 
 custom:
   lumigo:
@@ -65,7 +65,7 @@ In case you want to manage the Lumigo tracer dependency yourself - e.g. you want
 ```yaml
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs22.x
 
 custom:
   lumigo:
@@ -78,7 +78,7 @@ In case you are using ES Modules for Lambda handlers.
 ```yaml
 provider:
   name: aws
-  runtime: nodejs14.x
+  runtime: nodejs22.x
 
 custom:
   lumigo:
