@@ -21,7 +21,7 @@ workflows:
 jobs:
   build:
     docker:
-      - image: cimg/node:16.13.2
+      - image: cimg/node:22.18.0
     working_directory: ~/serverless-lumigo-plugin
     steps:
       - checkout
@@ -37,7 +37,7 @@ jobs:
 
   deploy:
     docker:
-      - image: cimg/node:16.13.2
+      - image: cimg/node:22.18.0
     working_directory: ~/serverless-lumigo
     steps:
       - checkout
