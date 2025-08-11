@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "esbuild": "^0.14.25",
-    "serverless-esbuild": "^1.30.0"
+    "esbuild": "^0.25.8",
+    "serverless-esbuild": "^1.55.1"
   }
 }
