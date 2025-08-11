@@ -6,7 +6,7 @@ const childProcess = BbPromise.promisifyAll(require("child_process"));
 const path = require("path");
 
 const nodeLayerVersionsUrl =
-	"https://raw.githubusercontent.com/lumigo-io/lumigo-node/master/layers/LAYERS12x.md";
+	"https://raw.githubusercontent.com/lumigo-io/lumigo-node/master/layers/LAYERS22x.md";
 const pythonLayerVersionsUrl =
 	"https://raw.githubusercontent.com/lumigo-io/python_tracer/master/layers/LAYERS37.md";
 
