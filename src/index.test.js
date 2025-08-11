@@ -108,7 +108,7 @@ describe("Old serverless compatibility", () => {
 });
 
 describe("Lumigo plugin (node.js)", () => {
-	const runtimes = [["nodejs14.x"], ["nodejs12.x"], ["nodejs10.x"]];
+	const runtimes = [["nodejs22.x"], ["nodejs20.x"]];
 	describe.each(runtimes)("when using runtime %s", runtime => {
 		beforeEach(() => {
 			serverless.service.provider.runtime = runtime;
@@ -132,40 +132,37 @@ describe("Lumigo plugin (node.js)", () => {
 			);
 		});
 
-		if (runtime === "nodejs14.x") {
-			describe("when nodeUseESModule is true", () => {
-				beforeEach(() => {
-					serverless.service.custom.lumigo.nodeUseESModule = true;
-				});
-
-				test("it should wrap all non-skipped functions after package initialize ES style", async () => {
-					await lumigo.afterPackageInitialize();
-					assertNodejsFunctionsAreWrappedES();
-				});
+		describe("when nodeUseESModule is true", () => {
+			beforeEach(() => {
+				serverless.service.custom.lumigo.nodeUseESModule = true;
 			});
 
-			describe("when nodeModuleFileExtension is mjs", () => {
-				beforeEach(async () => {
-					serverless.service.custom.lumigo.nodeUseESModule = true;
-					serverless.service.custom.lumigo.nodeModuleFileExtension = "mjs";
-					options.function = "hello";
-					await lumigo.afterDeployFunctionInitialize();
-				});
-
-				test("should add mjs as file extension", async () => {
-					assertFileOutputES({
-						filename: "hello.js",
-						importStatement:
-							"import {world as originalHandler} from '../hello.mjs'",
-						exportStatement:
-							"export const world = tracer.trace(originalHandler);"
-					});
-					expect(serverless.service.functions.hello.handler).toBe(
-						"_lumigo/hello.world"
-					);
-				});
+			test("it should wrap all non-skipped functions after package initialize ES style", async () => {
+				await lumigo.afterPackageInitialize();
+				assertNodejsFunctionsAreWrappedES();
 			});
-		}
+		});
+
+		describe("when nodeModuleFileExtension is mjs", () => {
+			beforeEach(async () => {
+				serverless.service.custom.lumigo.nodeUseESModule = true;
+				serverless.service.custom.lumigo.nodeModuleFileExtension = "mjs";
+				options.function = "hello";
+				await lumigo.afterDeployFunctionInitialize();
+			});
+
+			test("should add mjs as file extension", async () => {
+				assertFileOutputES({
+					filename: "hello.js",
+					importStatement:
+						"import {world as originalHandler} from '../hello.mjs'",
+					exportStatement: "export const world = tracer.trace(originalHandler);"
+				});
+				expect(serverless.service.functions.hello.handler).toBe(
+					"_lumigo/hello.world"
+				);
+			});
+		});
 
 		describe("when nodeUseESModule is false", () => {
 			beforeEach(() => {
@@ -516,7 +513,7 @@ describe("Lumigo plugin (python)", () => {
 
 	describe("python3.10", () => {
 		beforeEach(() => {
-			serverless.service.provider.runtime = "python3.10";
+			serverless.service.provider.runtime = "python3.12";
 		});
 
 		describe("when useLayers is true", () => {
